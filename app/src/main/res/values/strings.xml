@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">D.I.P</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">아이디(이메일)</string>
+    <string name="prompt_password">비밀번호</string>
+    <string name="action_sign_in">로그인</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">올바른 이메일 형식이 아닙니다.</string>
+    <string name="error_invalid_password">비밀번호가 너무 짧습니다.</string>
+    <string name="error_incorrect_password">잘못된 비밀번호 입니다.</string>
+    <string name="error_field_required">필수 영역입니다.</string>
+    <string name="permission_rationale">"주소록은 이메일 자동완성에 필요한 권한입니다."</string>
+    <string name="KAKAO_KEY">d29ced6a7ac6ee30a72160406cfb49c3</string>
+    <string name="facebook_app_id">1880378488659927</string>
+    <string name="fb_login_protocol_scheme">fb1880378488659927</string>
+    <string name="title_activity_main">MainActivity</string>
+</resources>

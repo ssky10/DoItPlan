@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cardview_light_background"
+    tools:context=".ResultListActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="8dp">
+
+            <TextView
+                android:id="@+id/textView20"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="70px"
+                android:layout_marginTop="140px"
+                android:gravity="center"
+                android:text="결 과"
+                android:textColor="@color/accent_color"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="50px"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="50px"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button11"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@color/blue"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_call_white_48px"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView21"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/blue"
+                        android:gravity="center"
+                        android:text="전화"
+                        android:textColor="@color/cardview_light_background" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button12"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@android:color/holo_orange_dark"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_chat_white_48px"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView22"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/holo_orange_dark"
+                        android:gravity="center"
+                        android:text="문자"
+                        android:textColor="@color/cardview_light_background" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="70px"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="50px"
+                    android:orientation="vertical">
+
+                    <Button
+                        android:id="@+id/button13"
+                        android:layout_width="300px"
+                        android:layout_height="300px"
+                        android:layout_marginRight="50px"
+                        android:layout_weight="1"
+                        android:background="@drawable/kakaotalk" />
+
+                    <TextView
+                        android:id="@+id/textView23"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="#fff22f"
+                        android:gravity="center"
+                        android:lines="1"
+                        android:text="카카오톡"
+                        android:textColor="@color/navigationBarColor" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button14"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@color/colorAccent"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_apps_white_48px"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView24"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorAccent"
+                        android:gravity="center"
+                        android:text="어플리케이션"
+                        android:textColor="@color/cardview_light_background" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="70px"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="50px"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button15"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@color/purple"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_wb_sunny_white_48dp"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView25"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/purple"
+                        android:gravity="center"
+                        android:text="날씨"
+                        android:textColor="@color/cardview_light_background" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button16"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@android:color/holo_green_light"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_notifications_none_white_48px"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView26"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/holo_green_light"
+                        android:gravity="center"
+                        android:text="알림"
+                        android:textColor="@color/cardview_light_background" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="70px"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="50px"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button17"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@android:color/holo_red_light"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_description_white_48px"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView27"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/holo_red_light"
+                        android:gravity="center"
+                        android:text="클립보드"
+                        android:textColor="@color/cardview_light_background" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button18"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@android:color/holo_orange_light"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/naver"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView28"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#02c70a"
+                        android:gravity="center"
+                        android:text="위치"
+                        android:textColor="@color/cardview_light_background" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="70px"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="50px"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button19"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@color/cyan"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_settings_white_48px"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView29"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/cyan"
+                        android:gravity="center"
+                        android:text="설정"
+                        android:textColor="@color/cardview_light_background" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="300px"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/button8"
+                        android:layout_width="match_parent"
+                        android:layout_height="300px"
+                        android:background="@android:color/holo_orange_light"
+                        android:scaleType="centerCrop"
+                        android:src="@android:color/background_light"
+                        android:text="Button" />
+
+                    <TextView
+                        android:id="@+id/textView30"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/cardview_light_background"
+                        android:gravity="center"
+                        android:textColor="@color/cardview_light_background" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

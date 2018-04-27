@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/card_bview"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginBottom="@dimen/cardMarginVertical"
+        android:layout_marginLeft="@dimen/cardMarginHorizontal"
+        android:layout_marginRight="@dimen/cardMarginHorizontal"
+        android:layout_marginTop="@dimen/cardMarginVertical"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="2dp"
+        app:cardPreventCornerOverlap="false"
+        app:contentPadding="0dp">
+
+        <TextView
+            android:id="@+id/card_btitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:text="조건 및 결과"
+            android:textSize="36sp" />
+
+        <TextView
+            android:id="@+id/btextView"
+            android:layout_width="151dp"
+            android:layout_height="32dp"
+            android:layout_gravity="bottom|left"
+            android:layout_marginLeft="30px"
+            android:layout_marginBottom="20px"
+            android:text="Planner"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_marginRight="20px"
+            android:layout_marginBottom="10px"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/bbutton2"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="bottom|right"
+                android:layout_marginRight="25px"
+                android:layout_weight="1"
+                android:background="@drawable/ic_thumb_up_black_48dp" />
+
+            <Button
+                android:id="@+id/bbutton3"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="bottom|right"
+
+                android:layout_weight="1"
+                android:background="@drawable/ic_shopping_cart_black_48dp" />
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+</FrameLayout>
