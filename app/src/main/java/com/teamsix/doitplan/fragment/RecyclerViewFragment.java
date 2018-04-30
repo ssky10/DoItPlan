@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import com.github.florent37.materialviewpager.header.MaterialViewPagerHeaderDecorator;
 import com.teamsix.doitplan.DataSet;
+import com.teamsix.doitplan.MainActivity;
 import com.teamsix.doitplan.R;
 import com.teamsix.doitplan.TestRecyclerViewAdapter;
 

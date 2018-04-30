@@ -57,6 +57,14 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                 parent.getContext().startActivity(contents.get(0)); //프래그먼트 상에서 인텐트 이동
             }
         });
+
+        TextView textview1 = (TextView)view.findViewById(R.id.textView2);
+        textview1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                parent.getContext().startActivity(contents.get(1)); //프래그먼트 상에서 인텐트 이동
+            }
+        });
         return new RecyclerView.ViewHolder(view) {
         };
     }//newplan레이아웃
