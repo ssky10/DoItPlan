@@ -56,23 +56,27 @@
                 android:checked="false"
                 tools:checked="true" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/sbutton2"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_gravity="bottom|right"
                 android:layout_marginRight="25px"
                 android:layout_weight="1"
-                android:background="@drawable/ic_share_black_48dp" />
+                android:background="#00000000"
+                android:src="@drawable/ic_share_black_48dp"
+                android:tint="@color/colorPrimaryDark" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/sbutton3"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_gravity="bottom|right"
-
                 android:layout_weight="1"
-                android:background="@drawable/ic_settings_black_48dp" />
+                android:background="#00000000"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_settings_white_48px"
+                android:tint="@color/colorPrimaryDark" />
         </LinearLayout>
 
     </android.support.v7.widget.CardView>

@@ -1,4 +1,4 @@
-package com.teamsix.doitplan;
+package com.teamsix.doitplan.widget;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;

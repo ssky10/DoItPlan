@@ -2,12 +2,17 @@ package com.teamsix.doitplan;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -20,9 +25,12 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.text.TextUtils;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,16 +40,26 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.Profile;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.kakao.auth.ISessionCallback;
 import com.kakao.auth.Session;
+import com.kakao.network.ErrorResult;
+import com.kakao.usermgmt.UserManagement;
+import com.kakao.usermgmt.callback.LogoutResponseCallback;
+import com.kakao.usermgmt.callback.MeResponseCallback;
+import com.kakao.usermgmt.response.model.UserProfile;
 import com.kakao.util.exception.KakaoException;
 import com.kakao.util.helper.log.Logger;
 
@@ -79,6 +97,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private LoginButton loginButton;
     private Button btnRegist;
     private Button btnFb;
+    private SharedPreferences appData;
+    private UserProfile profile;
+    private String token;
 
     /**
      * 연락처 권한
@@ -89,7 +110,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    private ConnectServer.UserLoginTask mAuthTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -102,87 +123,196 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
+        appData = getSharedPreferences("loginData", MODE_PRIVATE);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
+        if (ApplicationController.getIsLogin()) {
+            redirectSignupActivity();
+        }else{
+
+            // Set up the login form.
+            mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+            populateAutoComplete();
+
+            mPasswordView = (EditText) findViewById(R.id.password);
+            mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+                    if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                        attemptLogin();
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-        });
+            });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
+            Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+            mEmailSignInButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    attemptLogin();
+                }
+            });
 
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
+            mLoginFormView = findViewById(R.id.login_form);
+            mProgressView = findViewById(R.id.login_progress);
 
-        //카카오톡 로그인 설정
-        callback = new SessionCallback();
-        Session.getCurrentSession().addCallback(callback);
-        Session.getCurrentSession().checkAndImplicitOpen();
+            //카카오톡 로그인 설정
+            callback = new SessionCallback();
+            Session.getCurrentSession().addCallback(callback);
+            Session.getCurrentSession().checkAndImplicitOpen();
 
-        //페이스북 로그인 설정
-        callbackManager = CallbackManager.Factory.create();
-        loginButton = findViewById(R.id.login_button);
-        loginButton.setReadPermissions("email");
-        loginButton.registerCallback(callbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                        Log.d(TAG, "onSucces LoginResult=" + loginResult);
-                    }
+            //페이스북 로그인 설정
+            callbackManager = CallbackManager.Factory.create();
+            loginButton = findViewById(R.id.login_button);
+            loginButton.setReadPermissions("email");
+            loginButton.registerCallback(callbackManager,
+                    new FacebookCallback<LoginResult>() {
+                        @Override
+                        public void onSuccess(final LoginResult loginResult) {
+                            GraphRequest request;
+                            request = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
 
-                    @Override
-                    public void onCancel() {
-                        // App code
-                        Log.d(TAG, "onCancel");
-                    }
+                                @Override
+                                public void onCompleted(JSONObject user, GraphResponse response) {
+                                    if (response.getError() != null) {
 
-                    @Override
-                    public void onError(FacebookException exception) {
-                        // App code
-                        Log.d(TAG, "onError");
-                    }
-                });
+                                    } else {
+                                        Log.i("TAG", "user: " + user.toString());
+                                        Log.i("TAG", "AccessToken: " + loginResult.getAccessToken().getToken());
+                                        setResult(RESULT_OK);
 
-        //페이스북 커스텀 로그인버튼 설정
-        btnFb = (Button) findViewById(R.id.btnFb);
-        btnFb.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                loginButton.performClick();
-            }
-        });
+                                        try {
+                                            @SuppressLint("StaticFieldLeak")
+                                            ConnectServer.UserTokenCheckTask task
+                                                    = new ConnectServer.UserTokenCheckTask(user.getString("email"), "facebook", AccessToken.getCurrentAccessToken().getUserId(), LoginActivity.this) {
 
-        //회원가입버튼 설정
-        btnRegist = (Button) findViewById(R.id.btnRegist);
-        btnRegist.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                protected void onPostExecute(final JSONObject success) {
+                                                    asyncDialog.dismiss();
+                                                    if (success == null) {
+                                                        Toast.makeText(LoginActivity.this, "서버접속에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                                                    } else {
+                                                        try {
+                                                            boolean result = success.getBoolean("result");
+                                                            if (result) {
+                                                                ApplicationController.login(mEmail, success.getString("nickname"));
+                                                                redirectSignupActivity();
+                                                            } else {
+                                                                int code = success.getInt("code");
+                                                                if (code == 0) {
+                                                                    Intent intent = new Intent(getApplicationContext(), RegistActivity.class);
+                                                                    intent.putExtra("type", 2);
+                                                                    intent.putExtra("email", mEmail);
+                                                                    intent.putExtra("Ftoken", mToken);
+                                                                    intent.setFlags(intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                                                    startActivityForResult(intent, 1000);
+                                                                } else if (code == 1) {
+                                                                    AlertDialog.Builder ad = new AlertDialog.Builder(new ContextThemeWrapper(LoginActivity.this, R.style.Theme_AppCompat_Dialog));
 
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), RegistActivity.class);
+                                                                    ad.setTitle("계정확인");       // 제목 설정
+                                                                    ad.setMessage("이미 동일한 메일의 계정이 존재합니다.\n연결하시려면 기존 비밀번호를 입력해주세요.");   // 내용 설정
 
-                intent.setFlags(intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                                                    final EditText et = new EditText(LoginActivity.this);
+                                                                    et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                                                                    et.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                                                                    ad.setView(et);
 
-                startActivityForResult(intent, 1000);
-            }
-        });
+                                                                    ad.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(DialogInterface dialog, int which) {
+                                                                            Log.v(TAG, "Yes Btn Click");
+
+                                                                            new ConnectServer.UserSingUpTokenTask(mEmail, et.getText().toString(), "facebook", mToken, LoginActivity.this) {
+                                                                                @Override
+                                                                                protected void onPostExecute(Boolean result) {
+                                                                                    asyncDialog.dismiss();
+                                                                                    if (result) {
+                                                                                        Toast.makeText(LoginActivity.this, "정상적으로 연결되었습니다.\n다시 로그인 해주세요", Toast.LENGTH_SHORT).show();
+                                                                                    } else {
+                                                                                        Toast.makeText(LoginActivity.this, "연결이 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                                                                                    }
+                                                                                    LoginManager.getInstance().logOut(); //페이스북 로그아웃
+                                                                                }
+                                                                            }.execute();
+                                                                            dialog.dismiss();
+                                                                        }
+                                                                    });
+
+                                                                    ad.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(DialogInterface dialog, int which) {
+                                                                            Log.v(TAG, "No Btn Click");
+                                                                            dialog.dismiss();     //닫기
+                                                                            // Event
+                                                                        }
+                                                                    });
+
+                                                                    ad.show();
+
+
+                                                                } else if (code == 2) {
+                                                                    ApplicationController.logout();
+                                                                    Toast.makeText(LoginActivity.this, "동일한 이메일에 이미 등록된 계정이 존재합니다.", Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                }
+                                            };
+                                            task.execute();
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            });
+                            Bundle parameters = new Bundle();
+                            parameters.putString("fields", "id,name,email");
+                            request.setParameters(parameters);
+                            request.executeAsync();
+
+
+                            Log.d(TAG, "onSucces LoginResult=" + loginResult);
+                        }
+
+                        @Override
+                        public void onCancel() {
+                            // App code
+                            Log.d(TAG, "onCancel");
+                        }
+
+                        @Override
+                        public void onError(FacebookException exception) {
+                            // App code
+                            Log.d(TAG, "onError");
+                        }
+                    });
+
+            //페이스북 커스텀 로그인버튼 설정
+            btnFb = (Button) findViewById(R.id.btnFb);
+            btnFb.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    loginButton.performClick();
+                }
+            });
+
+            //회원가입버튼 설정
+            btnRegist = (Button) findViewById(R.id.btnRegist);
+            btnRegist.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), RegistActivity.class);
+                    intent.putExtra("type", 0);
+                    intent.setFlags(intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivityForResult(intent, 1000);
+                }
+            });
+
+        }
 
         //토큰값 추출
         String str = getKeyHash(this);
@@ -200,11 +330,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private class SessionCallback implements ISessionCallback {
-
-
         @Override
         public void onSessionOpened() {
-            redirectSignupActivity();
+            requestMe();
         }
 
         @Override
@@ -214,6 +342,125 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
             setContentView(R.layout.activity_login);
         }
+    }
+
+    private void requestMe() {
+        List<String> propertyKeys = new ArrayList<String>();
+        propertyKeys.add("kaccount_email");
+        propertyKeys.add("nickname");
+        propertyKeys.add("profile_image");
+        propertyKeys.add("thumbnail_image");
+
+        UserManagement.getInstance().requestMe(new MeResponseCallback() {
+            @Override
+            public void onFailure(ErrorResult errorResult) {
+                String message = "failed to get user info. msg=" + errorResult;
+                Logger.d(message);
+            }
+
+            @Override
+            public void onSessionClosed(ErrorResult errorResult) {
+            }
+
+            @SuppressLint("StaticFieldLeak")
+            @Override
+            public void onSuccess(UserProfile userProfile) {
+                Logger.d("UserProfile : " + userProfile);
+                Log.e("onSessionClosed", userProfile.toString());
+                if (!LoginActivity.this.isFinishing()) {
+                    profile = userProfile;
+                    ConnectServer.UserTokenCheckTask task
+                            = new ConnectServer.UserTokenCheckTask(profile.getEmail(), "kakao", String.valueOf(profile.getId()), LoginActivity.this) {
+
+                        @Override
+                        protected void onPostExecute(final JSONObject success) {
+                            if(asyncDialog != null) asyncDialog.dismiss();
+                            if (success == null) {
+                                Toast.makeText(LoginActivity.this, "서버접속에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                try {
+                                    boolean result = success.getBoolean("result");
+                                    if (result) {
+                                        ApplicationController.login(mEmail, success.getString("nickname"));
+                                        redirectSignupActivity();
+                                    } else {
+                                        int code = success.getInt("code");
+                                        if (code == 0) {
+                                            Intent intent = new Intent(getApplicationContext(), RegistActivity.class);
+                                            intent.putExtra("type", 1);
+                                            intent.putExtra("email", mEmail);
+                                            intent.putExtra("Ktoken", mToken);
+                                            intent.setFlags(intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                            startActivityForResult(intent, 1000);
+                                        } else if (code == 1) {
+                                            AlertDialog.Builder ad = new AlertDialog.Builder(new ContextThemeWrapper(LoginActivity.this, R.style.Theme_AppCompat_Dialog));
+
+                                            ad.setTitle("계정확인");       // 제목 설정
+                                            ad.setMessage("이미 동일한 메일의 계정이 존재합니다.\n연결하시려면 기존 비밀번호를 입력해주세요.");   // 내용 설정
+
+                                            final EditText et = new EditText(LoginActivity.this);
+                                            et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                                            et.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                                            ad.setView(et);
+
+                                            ad.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    Log.v(TAG, "Yes Btn Click");
+
+                                                    new ConnectServer.UserSingUpTokenTask(mEmail, et.getText().toString(), "kakao", mToken, LoginActivity.this) {
+                                                        @Override
+                                                        protected void onPostExecute(Boolean result) {
+                                                            asyncDialog.dismiss();
+                                                            if (result) {
+                                                                Toast.makeText(LoginActivity.this, "정상적으로 연결되었습니다.\n다시 로그인 해주세요", Toast.LENGTH_SHORT).show();
+                                                            } else {
+                                                                Toast.makeText(LoginActivity.this, "연결이 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                            UserManagement.getInstance().requestLogout(new LogoutResponseCallback() {
+                                                                @Override
+                                                                public void onCompleteLogout() {
+
+                                                                }
+                                                            });
+
+                                                        }
+                                                    }.execute();
+                                                    dialog.dismiss();
+                                                }
+                                            });
+
+                                            ad.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    Log.v(TAG, "No Btn Click");
+                                                    dialog.dismiss();     //닫기
+                                                    // Event
+                                                }
+                                            });
+
+                                            ad.show();
+
+
+                                        } else if (code == 2) {
+                                            ApplicationController.logout();
+                                            Toast.makeText(LoginActivity.this, "동일한 이메일에 이미 등록된 계정이 존재합니다.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    };
+                    task.execute();
+                }
+            }
+
+            @Override
+            public void onNotSignedUp() {
+            }
+        }, propertyKeys, false);
     }
 
     @Override
@@ -226,11 +473,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     protected void redirectSignupActivity() {
-        final Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        finish();
+        new ConnectServer.GetMyPlanTask(LoginActivity.this){
+
+            @Override
+            protected void onPostExecute(ArrayList<Plan> result) {
+                if(asyncDialog != null) asyncDialog.dismiss();
+                final Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+        }.execute();
     }
 
     /**
@@ -287,6 +542,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * errors are presented and no actual login attempt is made.
      */
 
+    @SuppressLint("StaticFieldLeak")
     private void attemptLogin() {
         if (mAuthTask != null) {
             return;
@@ -329,7 +585,30 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new ConnectServer.UserLoginTask(email, password) {
+                @Override
+                protected void onPostExecute(final JSONObject success) {
+                    mAuthTask = null;
+                    showProgress(false);
+                    try {
+                        if (success.getBoolean("result")) { //로그인에 성공할 경우
+                            ApplicationController.login(mEmail, success.getString("nickname"));
+                            redirectSignupActivity();
+                        } else { //로그인에 실패할 경우
+                            mPasswordView.setError(success.getString("msg"));
+                            //mPasswordView.requestFocus();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                protected void onCancelled() {
+                    mAuthTask = null;
+                    showProgress(false);
+                }
+            };
             mAuthTask.execute((Void) null);
         }
     }
@@ -436,98 +715,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
-    /**
-     * 로그인 연결 확인 부분
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-        private JSONObject jObject;
-
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            Boolean result = false;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/userCheck.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //Post방식으로 넘길 값들을 각각 지정을 해주어야 한다.
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(mEmail, "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "password", URLDecoder.decode(mPassword, "UTF-8")));
-
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf); //반환값 문자열로 변경
-                }
-
-                Log.e("response", str.toString());
-
-                jObject = new JSONObject(str.toString()); //JSON형태의 반환값 JSON으로 변경
-                result = jObject.getBoolean("result"); //result값 추출 및 저장
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return result; //결과 값 반환
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) { //로그인에 성공할 경우
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(intent);
-                finish();
-            } else { //로그인에 실패할 경우
-                try {
-                    mPasswordView.setError(jObject.getString("msg"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                //mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
 
     //해쉬키 추출
     public static String getKeyHash(final Context context) {
@@ -546,6 +733,5 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
         return null;
     }
-
 }
 

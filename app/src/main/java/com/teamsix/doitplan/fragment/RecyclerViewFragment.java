@@ -1,20 +1,29 @@
 package com.teamsix.doitplan.fragment;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.florent37.materialviewpager.header.MaterialViewPagerHeaderDecorator;
-import com.teamsix.doitplan.DataSet;
+import com.teamsix.doitplan.ApplicationController;
+import com.teamsix.doitplan.ConnectServer;
 import com.teamsix.doitplan.MainActivity;
+import com.teamsix.doitplan.Plan;
 import com.teamsix.doitplan.R;
 import com.teamsix.doitplan.TestRecyclerViewAdapter;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +36,6 @@ import butterknife.ButterKnife;
  */
 public class RecyclerViewFragment extends Fragment {
 
-    private static final boolean GRID_LAYOUT = false;
-    private static final int ITEM_COUNT = 10;
 
     @BindView(R.id.recyclerView)
     RecyclerView mRecyclerView;
@@ -47,24 +54,37 @@ public class RecyclerViewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
 
-        final List<DataSet> items = new ArrayList<>();
+        final List<Plan> items = new ArrayList<>();
 
-        for (int i = 0; i < ITEM_COUNT; ++i) {
-            items.add(new DataSet("타인의 "+i+"번 Plan", "Planner " + i +"번"));
-        }//card의개수를만듬
+        @SuppressLint("StaticFieldLeak")
+        ConnectServer.GetRecommendPlanTask getPlanTask = new ConnectServer.GetRecommendPlanTask(RecyclerViewFragment.this.getContext()){
+            @Override
+            protected void onPostExecute(final ArrayList<Plan> success) {
+                if (success.size() != 0) { //로그인에 성공할 경우
+                    for(int i=0;i<success.size();i++){
+                        asyncDialog.dismiss();
+                        Log.e("GetRecommendPlanTask","title="+success.get(i).title);
+                        items.add(new Plan(success.get(i).planNo,success.get(i).title, success.get(i).planner,success.get(i).likes));
+
+                        mRecyclerView.setAdapter(new TestRecyclerViewAdapter(items));
+                    }
+                } else { //로그인에 실패할 경우
+                    //mPasswordView.setError(jObject.getString("msg"));
+                    //mPasswordView.requestFocus();
+                }
+            }
+        };
+        getPlanTask.execute();
 
 
+        SwipeRefreshLayout mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
+        mSwipeRefreshLayout.setEnabled(false);
 
         //setup materialviewpager
-        if (GRID_LAYOUT) {
-            mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
-        } else {
-            mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        }//카드가한줄에하나씩
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setHasFixedSize(true);
 
         //Use this now
         mRecyclerView.addItemDecoration(new MaterialViewPagerHeaderDecorator());
-        mRecyclerView.setAdapter(new TestRecyclerViewAdapter(items));
     }
 }

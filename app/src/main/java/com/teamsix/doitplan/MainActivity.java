@@ -1,11 +1,13 @@
 package com.teamsix.doitplan;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -23,6 +25,7 @@ public class MainActivity extends DrawerActivity {
     //뷰 연결
     @BindView(R.id.materialViewPager)
     MaterialViewPager mViewPager;//
+    NewRecyclerViewFragment newRecyclerViewFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,7 @@ public class MainActivity extends DrawerActivity {
             actionBar.setHomeButtonEnabled(true);
         }
 
+
         //뷰설정
         mViewPager.getViewPager().setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
 
@@ -53,7 +57,8 @@ public class MainActivity extends DrawerActivity {
                     case 0:
                         return RecyclerViewFragment.newInstance();//타인의Plan
                     case 1:
-                        return NewRecyclerViewFragment.newInstance();//새로운Plan
+                        newRecyclerViewFragment = NewRecyclerViewFragment.newInstance();
+                        return newRecyclerViewFragment;//새로운Plan
                     case 2:
                         return SmallRecyclerViewFragment.newInstance();//나만의Plan
                     default:
@@ -111,4 +116,13 @@ public class MainActivity extends DrawerActivity {
         mViewPager.getPagerTitleStrip().setViewPager(mViewPager.getViewPager());
 
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.e("onActivityResult","MainActivity-start");
+        newRecyclerViewFragment.onActivityResult(requestCode,resultCode,data);
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.e("onActivityResult","MainActivity-end");
+    }
+
 }

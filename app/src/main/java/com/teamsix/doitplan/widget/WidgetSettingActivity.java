@@ -1,4 +1,4 @@
-package com.teamsix.doitplan;
+package com.teamsix.doitplan.widget;
 
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 import com.jaredrummler.android.colorpicker.ColorPickerDialog;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
+import com.teamsix.doitplan.BuildConfig;
+import com.teamsix.doitplan.R;
 
 public class WidgetSettingActivity extends AppCompatActivity implements ColorPickerDialogListener {
 

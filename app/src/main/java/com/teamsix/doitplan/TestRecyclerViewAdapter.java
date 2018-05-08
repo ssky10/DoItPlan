@@ -3,6 +3,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.List;
  */
 public class TestRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    List<DataSet> contents; //각 Plan에 대한 정보 전달
+    List<Plan> contents; //각 Plan에 대한 정보 전달
 
     static final int TYPE_HEADER = 0;
     static final int TYPE_CELL = 1;
@@ -20,7 +22,7 @@ public class TestRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
     /**
      * 생성자 - 매개변수로 인텐트 리스트 가짐
      */
-    public TestRecyclerViewAdapter(List<DataSet> contents) {
+    public TestRecyclerViewAdapter(List<Plan> contents) {
         this.contents = contents;
     }
 
@@ -44,7 +46,7 @@ public class TestRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
      * 각각의 리스트를 생성
      */
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, final int viewType) {
         View view = null;
 
         view = LayoutInflater.from(parent.getContext())
@@ -54,7 +56,9 @@ public class TestRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.V
         textview.setText(contents.get(viewType).title);
 
         TextView text_view = (TextView)view.findViewById(R.id.btextView);
-        text_view.setText(contents.get(viewType).planner);
+        text_view.setText("Planner "+contents.get(viewType).planner);
+
+
 
         return new RecyclerView.ViewHolder(view) {
         };

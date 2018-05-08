@@ -1,5 +1,6 @@
 package com.teamsix.doitplan;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -43,12 +44,17 @@ public class RegistActivity extends AppCompatActivity {
     private Button btnCancel; //취소 버튼
     private EditText etNickname; //닉네입 입력 팡
     private Button btnCheck; //중복 확인 버튼
-    private Boolean isCheck = false; //중복 확인 여부
+    private Boolean isCheck = true; //중복 확인 여부
+    private int type;
+    private String token="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_regist);
+
+        Intent intent = getIntent();
+        type = intent.getIntExtra("type",0); //0:회원가입 1:카카오톡가입 2:페이스북가입 3:정보수정
 
         //각 요소와 자바 객체 연결
         etEmail = (EditText) findViewById(R.id.etEmail);
@@ -58,6 +64,35 @@ public class RegistActivity extends AppCompatActivity {
         btnDone = (Button) findViewById(R.id.btnDone);
         btnCancel = (Button) findViewById(R.id.btnCancel);
         btnCheck = (Button) findViewById(R.id.btnCheck);
+
+
+        switch (type){
+            case 0:
+                isCheck = false;
+                break;
+            case 1:
+                btnCheck.setVisibility(View.GONE);
+                etEmail.setText(intent.getStringExtra("email"));
+                token = intent.getStringExtra("Ktoken");
+                etEmail.setClickable(false);
+                etEmail.setFocusable(false);
+                break;
+            case 2:
+                btnCheck.setVisibility(View.GONE);
+                etEmail.setText(intent.getStringExtra("email"));
+                token = intent.getStringExtra("Ftoken");
+                etEmail.setClickable(false);
+                etEmail.setFocusable(false);
+                break;
+            case 3:
+                getSupportActionBar().setTitle("회원정보수정");
+                btnCheck.setVisibility(View.GONE);
+                etNickname.setText(ApplicationController.getNickname());
+                etEmail.setText(ApplicationController.getEmailId());
+                etEmail.setClickable(false);
+                etEmail.setFocusable(false);
+                break;
+        }
 
         //이메일 창의 값이 변경된 경우 실행
         etEmail.addTextChangedListener(new TextWatcher() {
@@ -69,7 +104,7 @@ public class RegistActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 //값이 변경될때
-                if (isCheck) { //중복확인 후 이메일 값 변경시 중복확인 취소
+                if (isCheck & type==0) { //중복확인 후 이메일 값 변경시 중복확인 취소
                     isCheck = false;
                     btnCheck.setTextColor(Color.BLACK);
                     btnCheck.setText("중복확인");
@@ -105,6 +140,7 @@ public class RegistActivity extends AppCompatActivity {
             }
         });
         btnDone.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("StaticFieldLeak")
             @Override
             public void onClick(View v) {
 
@@ -129,7 +165,30 @@ public class RegistActivity extends AppCompatActivity {
                     etEmail.requestFocus();
                     return;
                 }
-                new UserSingUpTask(etEmail.getText().toString(), etPassword.getText().toString(), etNickname.getText().toString()).execute();
+                new ConnectServer.UserSingUpTask(type ,etEmail.getText().toString(), etPassword.getText().toString(), etNickname.getText().toString(),RegistActivity.this,token){
+                    @Override
+                    protected void onPostExecute(final Boolean success) {
+                        asyncDialog.dismiss();
+
+                        if (success) {
+                            switch (type){
+                                case 0:
+                                case 1:
+                                case 2:
+                                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                    break;
+                                case 3:
+                                    Toast.makeText(RegistActivity.this,"수정이 정상적으로 완료되었습니다.",Toast.LENGTH_SHORT).show();
+                                    break;
+                            }
+
+                        } else {
+                            Toast.makeText(RegistActivity.this,"오류가 발생하였습니다.",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }.execute();
             }
         });
 
@@ -149,7 +208,27 @@ public class RegistActivity extends AppCompatActivity {
                     etEmail.requestFocus();
                     return;
                 }
-                UserIdCheckTask ch = new UserIdCheckTask(etEmail.getText().toString(), btnCheck);
+
+                @SuppressLint("StaticFieldLeak")
+                ConnectServer.UserIdCheckTask ch = new ConnectServer.UserIdCheckTask(etEmail.getText().toString()){
+                    @Override
+                    protected void onPreExecute() {
+                        btnCheck.setText("확인중");
+                        super.onPreExecute();
+                    }
+
+                    @Override
+                    protected void onPostExecute(final Boolean success) {
+                        if (success) {
+                            btnCheck.setText("성공");
+                            btnCheck.setTextColor(Color.CYAN);
+                            isCheck = true;
+                        } else {
+                            btnCheck.setText("실패");
+                            btnCheck.setTextColor(Color.RED);
+                        }
+                    }
+                };
                 ch.execute();
             }
         });
@@ -160,191 +239,4 @@ public class RegistActivity extends AppCompatActivity {
         return email.contains("@");
     }
 
-    /**
-     * 로그인 확인 백그라운드 작업
-     */
-    public class UserSingUpTask extends AsyncTask<Void, Void, Boolean> {
-        private final String mEmail;
-        private final String mPassword;
-        private final String mNickname;
-
-        ProgressDialog asyncDialog = new ProgressDialog(
-                RegistActivity.this);
-
-
-        UserSingUpTask(String email, String password, String nickname) {
-            mEmail = email;
-            mPassword = password;
-            mNickname = nickname;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            asyncDialog.setCanceledOnTouchOutside(false);
-            asyncDialog.setCancelable(false);
-            asyncDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                }
-            });
-            asyncDialog.setMessage("회원가입중입니다...");
-
-            // show dialog
-            asyncDialog.show();
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            Boolean result = false;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/sing_process.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //Post방식으로 넘길 값들을 각각 지정을 해주어야 한다.
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(mEmail, "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "password", URLDecoder.decode(mPassword, "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "nickname", URLDecoder.decode(mNickname, "UTF-8")));
-
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf);
-                }
-
-                Log.e("response", str.toString());
-
-                JSONObject jObject = new JSONObject(str.toString());
-                result = jObject.getBoolean("result");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            asyncDialog.dismiss();
-
-            if (success) {
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                //mPasswordView.setError(getString(R.string.error_incorrect_password));
-                //mPasswordView.requestFocus();
-            }
-        }
-
-    }
-
-    /**
-     * 중복확인 백그라운드 작업
-     */
-    public class UserIdCheckTask extends AsyncTask<Void, Void, Boolean> {
-        private final String mEmail;
-        private Button btn;
-
-        UserIdCheckTask(String email, Button button) {
-            mEmail = email;
-            btn = button;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            btn.setText("확인중");
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            Boolean result = false;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/checkId.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //Post방식으로 넘길 값들을 각각 지정을 해주어야 한다.
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(mEmail, "UTF-8")));
-
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf);
-                }
-
-                Log.e("response", str.toString());
-
-                JSONObject jObject = new JSONObject(str.toString());
-                result = jObject.getBoolean("result");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            if (success) {
-                btn.setText("성공");
-                btn.setTextColor(Color.CYAN);
-                isCheck = true;
-            } else {
-                btn.setText("실패");
-                btn.setTextColor(Color.RED);
-            }
-        }
-
-    }
 }

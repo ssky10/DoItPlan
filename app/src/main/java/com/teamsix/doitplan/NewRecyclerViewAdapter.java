@@ -1,10 +1,15 @@
 package com.teamsix.doitplan;
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.facebook.FacebookActivity;
 
 import java.util.List;
 
@@ -16,6 +21,8 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     List<Intent> contents; //클릭이벤트를 위해서 Intent값 저장
 
     static final int TYPE_HEADER = 0;
+
+    View view;
 
 
     /**
@@ -46,7 +53,7 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
      * */
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
-        View view = null;
+        view = null;
 
         view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.list_item_card_newplan, parent, false);
@@ -54,15 +61,15 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         textview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                parent.getContext().startActivity(contents.get(0)); //프래그먼트 상에서 인텐트 이동
+                ((Activity)parent.getContext()).startActivityForResult(contents.get(0),1); //프래그먼트 상에서 인텐트 이동
             }
         });
 
-        TextView textview1 = (TextView)view.findViewById(R.id.textView2);
+        TextView textview1 = (TextView)view.findViewById(R.id.textView7);
         textview1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                parent.getContext().startActivity(contents.get(1)); //프래그먼트 상에서 인텐트 이동
+                ((Activity)parent.getContext()).startActivityForResult(contents.get(1),1); //프래그먼트 상에서 인텐트 이동
             }
         });
         return new RecyclerView.ViewHolder(view) {
@@ -79,4 +86,29 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                 break;
         }
     }
+
+    public void setIfStr(boolean s, String str){
+        if(s){
+            TextView textview = (TextView)view.findViewById(R.id.textView2);
+            textview.setText(str);
+            TextView textview1 = (TextView)view.findViewById(R.id.textView7);
+            textview1.setTextColor(Color.parseColor("#FF00BCD4"));
+        }
+    }
+
+    public void setResultStr(boolean s, String str){
+        if(s){
+            TextView textview = (TextView)view.findViewById(R.id.textView7);
+            textview.setText(str);
+        }
+    }
+
+    public void setDefault(){
+        TextView textview = (TextView)view.findViewById(R.id.textView2);
+        textview.setText("조건");
+        textview = (TextView)view.findViewById(R.id.textView7);
+        textview.setTextColor(Color.parseColor("#767676"));
+        textview.setText("결과");
+    }
+
 }

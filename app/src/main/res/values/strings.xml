@@ -15,4 +15,6 @@
     <string name="facebook_app_id">1880378488659927</string>
     <string name="fb_login_protocol_scheme">fb1880378488659927</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="default_notification_channel_id" translatable="false">DIP</string>
+    <string name="title_activity_maps">Map</string>
 </resources>

@@ -57,7 +57,7 @@ public class KakaoSignupActivity extends Activity {
             public void onSuccess(UserProfile userProfile) {
                 Logger.d("UserProfile:" + userProfile);
                 Log.v("user", userProfile.toString());
-                redirectMainActivity();
+                redirectLoginActivity();
             }
 
         }, propertyKeys, false);

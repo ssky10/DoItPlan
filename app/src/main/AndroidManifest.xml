@@ -7,6 +7,14 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!--
+         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
+         Google Maps Android API v2, but you must specify either coarse or fine
+         location permissions for the 'MyLocation' functionality.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name=".ApplicationController"
@@ -16,7 +24,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".MainActivity" />
         <activity android:name=".IfListActivity" />
         <activity android:name=".ResultListActivity" />
 
@@ -60,8 +68,26 @@
             </intent-filter>
         </activity>
 
+        <!-- 위젯 화면 -->
+        <activity android:name=".widget.WidgetSettingActivity" />
+
+        <!-- 세부조건 다이얼로그 화면 -->
+        <activity
+            android:name=".Pop1Activity"
+            android:theme="@style/Theme.DialogActivity" />
+
+        <!-- 세부결과 다이얼로그 화면 -->
+        <activity
+            android:name=".Pop2Activity"
+            android:theme="@style/Theme.DialogActivity" />
+
+        <activity
+            android:name=".MapsActivity"
+            android:label="@string/title_activity_maps"
+            android:theme="@style/Theme.DialogActivity" />
+
         <receiver
-            android:name=".WidgetProvider"
+            android:name=".widget.WidgetProvider"
             android:label="위젯">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -73,6 +99,22 @@
                 android:resource="@xml/widget_provider" />
         </receiver>
 
+        <!-- [START firebase_service] -->
+        <service android:name=".firebase.MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- [END firebase_service] -->
+        <!-- [START firebase_iid_service] -->
+        <service android:name=".firebase.MyFirebaseInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- [END firebase_iid_service] -->
+
+
         <!-- 메타 데이터 부분 시작 -->
         <meta-data
             android:name="com.kakao.sdk.AppKey"
@@ -80,9 +122,24 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/cardview_dark_background" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
         <!-- 메타 데이터 부분 끝 -->
 
-        <activity android:name=".WidgetSettingActivity"></activity>
+
     </application>
 
 </manifest>

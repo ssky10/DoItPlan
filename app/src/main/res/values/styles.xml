@@ -36,4 +36,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="Theme.DialogActivity" parent="@style/Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@color/navigationBarColor</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:textColorHint">#4267b2</item>
+        <item name="colorControlNormal">#4267b2</item>
+        <item name="android:textColorPrimary">@color/navigationBarColor</item>
+    </style>
+
 </resources>

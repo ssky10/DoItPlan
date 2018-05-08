@@ -4,6 +4,6 @@
     android:minHeight="40dp"
     android:minWidth="40dp"
     android:previewImage="@drawable/ic_launcher_foreground"
-    android:configure="com.teamsix.doitplan.WidgetSettingActivity"
+    android:configure="com.teamsix.doitplan.widget.WidgetSettingActivity"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0" />

@@ -18,17 +18,33 @@
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="8dp">
 
-            <TextView
-                android:id="@+id/textView"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="70px"
-                android:layout_marginTop="140px"
-                android:gravity="center"
-                android:text="조 건"
-                android:textColor="@color/accent_color"
-                android:textSize="30sp"
-                android:textStyle="bold" />
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:layout_marginTop="150px"
+                    android:background="@color/com_facebook_blue" />
+
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="조 건"
+                    android:textColor="@color/accent_color"
+                    android:textSize="30sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:layout_marginBottom="80px"
+                    android:background="@color/com_facebook_blue" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -38,7 +54,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="50px"
                     android:orientation="vertical">
@@ -48,8 +64,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@color/blue"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_call_white_48px"
+                        app:srcCompat="@drawable/ic_call_white_48px"
                         android:text="Button" />
 
                     <TextView
@@ -63,7 +80,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
@@ -72,8 +89,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@android:color/holo_orange_dark"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_chat_white_48px"
+                        app:srcCompat="@drawable/ic_chat_white_48px"
                         android:text="Button" />
 
                     <TextView
@@ -96,33 +114,35 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="match_parent"
                     android:layout_marginRight="50px"
                     android:orientation="vertical">
 
-                    <Button
+                    <ImageButton
                         android:id="@+id/button4"
-                        android:layout_width="300px"
+                        android:layout_width="match_parent"
                         android:layout_height="300px"
-                        android:layout_marginRight="50px"
                         android:layout_weight="1"
-                        android:background="@drawable/kakaotalk" />
+                        android:onClick="btnClick"
+                        android:background="#ffeb02"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/kakaotalk_icon" />
 
                     <TextView
                         android:id="@+id/textView11"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="#fff22f"
+                        android:layout_height="40px"
+                        android:layout_weight="0"
+                        android:background="@drawable/text"
                         android:gravity="center"
-                        android:lines="1"
-                        android:text="카카오톡"
-                        android:textColor="@color/navigationBarColor" />
+                        android:text="KakaoTalk"
+                        android:textColor="@color/navigationBarColor"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
@@ -131,8 +151,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@color/colorAccent"
+                        android:onClick="btnClick"
                         android:scaleType="fitXY"
-                        android:src="@drawable/ic_alarm_on_white_48px"
+                        app:srcCompat="@drawable/ic_alarm_on_white_48px"
                         android:text="Button" />
 
                     <TextView
@@ -154,7 +175,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="50px"
                     android:orientation="vertical">
@@ -164,8 +185,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@color/purple"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_wb_sunny_white_48dp"
+                        app:srcCompat="@drawable/ic_wb_sunny_white_48px"
                         android:text="Button" />
 
                     <TextView
@@ -180,7 +202,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
@@ -189,8 +211,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@android:color/holo_green_light"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_battery_std_white_48px"
+                        app:srcCompat="@drawable/ic_battery_std_white_48px"
                         android:text="Button" />
 
                     <TextView
@@ -213,18 +236,19 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="50px"
                     android:orientation="vertical">
 
                     <ImageButton
-                        android:id="@+id/button9"
+                        android:id="@+id/button8"
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@android:color/holo_red_light"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_description_white_48px"
+                        app:srcCompat="@drawable/ic_description_white_48px"
                         android:text="Button" />
 
                     <TextView
@@ -238,17 +262,18 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="300px"
+                    android:layout_width="400px"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
                     <ImageButton
-                        android:id="@+id/button8"
+                        android:id="@+id/button9"
                         android:layout_width="match_parent"
                         android:layout_height="300px"
                         android:background="@android:color/holo_orange_light"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_pin_drop_white_48px"
+                        app:srcCompat="@drawable/ic_pin_drop_white_48px"
                         android:text="Button" />
 
                     <TextView

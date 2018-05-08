@@ -3,6 +3,7 @@ package com.teamsix.doitplan.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,10 +12,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.florent37.materialviewpager.header.MaterialViewPagerHeaderDecorator;
-import com.teamsix.doitplan.DataSet;
+import com.teamsix.doitplan.ApplicationController;
+import com.teamsix.doitplan.Plan;
 import com.teamsix.doitplan.R;
 import com.teamsix.doitplan.SmallRecyclerViewAdapter;
-import com.teamsix.doitplan.TestRecyclerViewAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +48,21 @@ public class SmallRecyclerViewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
 
-        final List<DataSet> items = new ArrayList<>();
+        final List<Plan> items = ApplicationController.getAllPlanDB();
 
-        for (int i = 0; i < ITEM_COUNT; ++i) {
-            items.add(new DataSet("나만의 "+i+"번 Plan", "Planner " + i +"번"));
-        }//card의개수를만듬
+        final SwipeRefreshLayout mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
 
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+                List<Plan> newItem = ApplicationController.getAllPlanDB();
+                mRecyclerView.setAdapter(new SmallRecyclerViewAdapter(newItem));
+
+                mSwipeRefreshLayout.setRefreshing(false);
+
+            }
+        });
 
 
         //setup materialviewpager
