@@ -632,6 +632,8 @@ public class ConnectServer {
         }
     }
 
+
+
     public static class GetForecastTask extends AsyncTask<Void, Void, JSONObject> {
 
         int x,y;
@@ -842,7 +844,7 @@ public class ConnectServer {
 
     }
 
-    public static class ConnectServerDialogTask extends AsyncTask<Void, Void, String> {
+    public static class ConnectServerDialogTask extends AsyncTask<Void, Void, JSONObject> {
 
         private ProgressDialog asyncDialog;
         RequestBody post;
@@ -875,8 +877,8 @@ public class ConnectServer {
         }
 
         @Override
-        protected String doInBackground(Void... voids) {
-            String result = null;
+        protected JSONObject doInBackground(Void... voids) {
+            JSONObject result = null;
             OkHttpClient client = new OkHttpClient();
 
             Request request = new Request.Builder()
@@ -888,8 +890,10 @@ public class ConnectServer {
                 Response response = client.newCall(request).execute();
                 //Log.e("PuchNotificationTask",response.body().string());
 
-                result = response.body().string();
+                result = new JSONObject(response.body().string());
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -897,8 +901,8 @@ public class ConnectServer {
         }
 
         @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
+        protected void onPostExecute(JSONObject jsonObject) {
+            super.onPostExecute(jsonObject);
             asyncDialog.dismiss();
         }
 
