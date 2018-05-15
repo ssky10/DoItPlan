@@ -46,6 +46,16 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
         sendRegistrationToServer(refreshedToken,email);
     }
 
+    public void onTokenDelete(String email){
+        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+        Log.d(TAG, "Refreshed token: " + refreshedToken);
+
+        // If you want to send messages to this application instance or
+        // manage this apps subscriptions on the server side, send the
+        // Instance ID token to your app server.
+        sendDeleteToServer(refreshedToken,email);
+    }
+
     /**
      * Persist token to third-party servers.
      *
@@ -59,6 +69,19 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
         OkHttpClient client = new OkHttpClient();
         RequestBody body = new FormBody.Builder().add("Token", token).add("ID",email).build();
         Request request = new Request.Builder().url("https://kakaoplus.ml/dip/register_token.php").post(body).build();
+        Log.d(TAG, "Refreshed token: " + token);
+        try {
+            client.newCall(request).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendDeleteToServer(String token,String email) {
+        // TODO: Implement this method to send token to your app server.
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = new FormBody.Builder().add("Token", token).add("ID",email).build();
+        Request request = new Request.Builder().url("https://kakaoplus.ml/dip/delete_token.php").post(body).build();
         Log.d(TAG, "Refreshed token: " + token);
         try {
             client.newCall(request).execute();

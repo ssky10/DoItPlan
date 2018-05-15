@@ -48,7 +48,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="문자열"
-                android:inputType="textEmailAddress"
                 android:maxLines="1"
                 android:singleLine="true"
                 android:textColor="#000000" />
@@ -66,7 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="번호"
-                android:inputType="textEmailAddress"
+                android:inputType="phone"
                 android:maxLines="1"
                 android:singleLine="true"
                 android:textColor="#000000" />
@@ -173,7 +172,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="해"
+                android:text="맑음"
                 android:textColor="@color/blue" />
 
             <CheckBox
@@ -181,7 +180,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="비"
+                android:text="흐림"
                 android:textColor="@color/blue" />
 
             <CheckBox
@@ -189,7 +188,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="눈"
+                android:text="눈/비"
                 android:textColor="@color/blue" />
         </LinearLayout>
 

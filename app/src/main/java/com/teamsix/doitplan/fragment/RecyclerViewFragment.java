@@ -17,19 +17,26 @@ import android.view.ViewGroup;
 import com.github.florent37.materialviewpager.header.MaterialViewPagerHeaderDecorator;
 import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.ConnectServer;
+import com.teamsix.doitplan.LoginActivity;
 import com.teamsix.doitplan.MainActivity;
 import com.teamsix.doitplan.Plan;
 import com.teamsix.doitplan.R;
 import com.teamsix.doitplan.TestRecyclerViewAdapter;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import okhttp3.FormBody;
 
 /**
  * Created by florentchampigny on 24/04/15.
@@ -57,17 +64,35 @@ public class RecyclerViewFragment extends Fragment {
         final List<Plan> items = new ArrayList<>();
 
         @SuppressLint("StaticFieldLeak")
-        ConnectServer.GetRecommendPlanTask getPlanTask = new ConnectServer.GetRecommendPlanTask(RecyclerViewFragment.this.getContext()){
+        ConnectServer.ConnectServerDialogTask getPlanTask = new ConnectServer.ConnectServerDialogTask(
+                RecyclerViewFragment.this.getContext(),
+                "로딩중입니다...",
+                new FormBody.Builder()
+                        .add("email", ApplicationController.getEmailId())
+                        .build(),
+                "getRecommendPlan.php"){
             @Override
-            protected void onPostExecute(final ArrayList<Plan> success) {
-                if (success.size() != 0) { //로그인에 성공할 경우
-                    for(int i=0;i<success.size();i++){
-                        asyncDialog.dismiss();
-                        Log.e("GetRecommendPlanTask","title="+success.get(i).title);
-                        items.add(new Plan(success.get(i).planNo,success.get(i).title, success.get(i).planner,success.get(i).likes));
-
-                        mRecyclerView.setAdapter(new TestRecyclerViewAdapter(items));
+            protected void onPostExecute(final String result) {
+                super.onPostExecute(result);
+                ArrayList<Plan> plans = new ArrayList<>();
+                try {
+                    JSONArray jObjects = new JSONArray(result);
+                    for (int i = 0; i < jObjects.length(); i++) {
+                        JSONObject plan = jObjects.getJSONObject(i);
+                        Plan p = new Plan(plan.getInt("plan_no"), plan.getString("msg"), plan.getString("nickname"), plan.getInt("likes_num"));
+                        p.isLike = plan.getBoolean("islike");
+                        Log.e("islike", String.valueOf(p.isLike));
+                        plans.add(p);
                     }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (plans.size() != 0) { //로그인에 성공할 경우
+                    for(int i=0;i<plans.size();i++)
+                        Log.e("GetRecommendPlanTask","title="+plans.get(i).title);
+                        //items.add(new Plan(success.get(i).planNo,success.get(i).title, success.get(i).planner,success.get(i).likes));
+                        mRecyclerView.setAdapter(new TestRecyclerViewAdapter(plans));
                 } else { //로그인에 실패할 경우
                     //mPasswordView.setError(jObject.getString("msg"));
                     //mPasswordView.requestFocus();

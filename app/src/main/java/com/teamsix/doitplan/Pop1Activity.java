@@ -1,21 +1,27 @@
 package com.teamsix.doitplan;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import com.google.android.gms.common.internal.Constants;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.teamsix.doitplan.background.AlarmBraodCastReciever;
+import com.teamsix.doitplan.background.AlarmUtils;
 
 public class Pop1Activity extends AppCompatActivity {
 
@@ -75,6 +81,7 @@ public class Pop1Activity extends AppCompatActivity {
             text1.setVisibility(View.GONE);
             text2.setHint("번호");
 
+
         }else if(data==Plan.IF_PHONE) {
             txtText.setText("문자가 왔을 때");
             text1.setHint("문자열");
@@ -84,6 +91,8 @@ public class Pop1Activity extends AppCompatActivity {
             txtText.setText("카카오톡 메세지가 왔을 때");
             text1.setHint("문자열");
             text2.setHint("보낸 사람");
+            EditText text = (EditText)findViewById(R.id.txtText2);
+            text.setInputType(InputType.TYPE_CLASS_TEXT);
 
         }else if(data==Plan.IF_TIME) {
             txtText.setText("특정시간이 되었을 때");
@@ -97,6 +106,11 @@ public class Pop1Activity extends AppCompatActivity {
             text1.setVisibility(View.GONE);
             text2.setVisibility(View.GONE);
             weat.setVisibility(View.VISIBLE);
+            if (!AlarmBraodCastReciever.isLaunched) {
+                ApplicationController.setAlarmUtils(AlarmUtils.getInstance());
+                ApplicationController.getAlarmUtils().startForecastUpdate(this);
+                ApplicationController.getForecast().getNowData(35.154483, 128.098444);
+            }
 
         }else if(data==Plan.IF_BATTERY) {
             txtText.setText("배터리가 일정수준 이하가 되었을 때");
@@ -127,9 +141,9 @@ public class Pop1Activity extends AppCompatActivity {
 
         }else if(data==Plan.IF_TIME) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                intent.putExtra("timeclock", time.getHour()+time.getMinute());
+                intent.putExtra("timeclock", time.getHour()+":"+time.getMinute());
             }else{
-                intent.putExtra("timeclock", time.getCurrentHour()+time.getCurrentMinute());
+                intent.putExtra("timeclock", time.getCurrentHour()+":"+time.getCurrentMinute());
             }
 
             intent.putExtra("timedaysun", sun.isChecked());

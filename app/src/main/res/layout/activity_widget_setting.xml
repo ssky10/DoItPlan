@@ -42,11 +42,10 @@
             app:layout_constraintTop_toBottomOf="@+id/textView18" />
 
         <Button
-            android:id="@+id/button10"
+            android:id="@+id/btn_get_result"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:onClick="getWidget"
             android:text="결과 가져오기"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editText" />
@@ -57,6 +56,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="색상 선택" />
+
+        <Button
+            android:id="@+id/btn_create_widget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:onClick="getWidget"
+            android:text="위젯생성" />
 
 
     </LinearLayout>

@@ -15,6 +15,7 @@ import com.jaredrummler.android.colorpicker.ColorPickerDialog;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 import com.teamsix.doitplan.BuildConfig;
 import com.teamsix.doitplan.R;
+import com.teamsix.doitplan.ResultListActivity;
 
 public class WidgetSettingActivity extends AppCompatActivity implements ColorPickerDialogListener {
 
@@ -26,6 +27,7 @@ public class WidgetSettingActivity extends AppCompatActivity implements ColorPic
     private RemoteViews remoteView;
 
     private String color;
+    private Button btn_result;
 
 
     @Override
@@ -55,6 +57,15 @@ public class WidgetSettingActivity extends AppCompatActivity implements ColorPic
                         .setColor(Color.WHITE)
                         .setShowAlphaSlider(false)
                         .show(WidgetSettingActivity.this);
+            }
+        });
+
+        btn_result = (Button)findViewById(R.id.btn_get_result);
+        btn_result.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),ResultListActivity.class);
+                startActivityForResult(intent,1000);
             }
         });
     }
@@ -92,5 +103,13 @@ public class WidgetSettingActivity extends AppCompatActivity implements ColorPic
     @Override
     public void onDialogDismissed(int dialogId) {
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==1000){
+            data.getIntExtra("Result",0);
+        }
     }
 }

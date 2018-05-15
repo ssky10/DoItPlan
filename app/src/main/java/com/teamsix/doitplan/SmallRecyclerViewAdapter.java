@@ -1,8 +1,10 @@
 package com.teamsix.doitplan;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +13,12 @@ import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
+
+import okhttp3.FormBody;
 
 /**
  * 나만의 플랜을 위한 RecyclerViewAdapter
@@ -57,12 +64,19 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
                 .inflate(R.layout.list_item_card_small, parent, false);
 
         TextView textview = (TextView) view.findViewById(R.id.card_stitle);
+        Switch swWork = (Switch) view.findViewById(R.id.switch1);
+        final ImageButton btnShare = (ImageButton)view.findViewById(R.id.sbutton2);
+        final ImageButton btnModify = (ImageButton)view.findViewById(R.id.sbutton3);
+
         textview.setText(contents.get(viewType).title);
 
-        TextView text_view = (TextView) view.findViewById(R.id.stextView);
-        text_view.setText(contents.get(viewType).planner);
+        if(contents.get(viewType).planNo==-1){
+            swWork.setVisibility(View.GONE);
+            btnShare.setVisibility(View.GONE);
+            btnModify.setVisibility(View.GONE);
+        }
 
-        Switch swWork = (Switch) view.findViewById(R.id.switch1);
+
         swWork.setChecked(contents.get(viewType).isWork);
         swWork.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -75,20 +89,35 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
             }
         });
 
-        final ImageButton btnShare = (ImageButton)view.findViewById(R.id.sbutton2);
+
         if(contents.get(viewType).isShare){
             btnShare.setColorFilter(Color.parseColor("#4267b2"));
         }
         btnShare.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("StaticFieldLeak")
             @Override
             public void onClick(View view) {
-                if(contents.get(viewType).isShare){
-                    contents.get(viewType).isShare = false;
-                    btnShare.setColorFilter(Color.parseColor("#FF767676"));
-                }else{
-                    contents.get(viewType).isShare = true;
-                    btnShare.setColorFilter(Color.parseColor("#4267b2"));
-                }
+                new ConnectServer.ConnectServerTask(new FormBody.Builder()
+                        .add("email", ApplicationController.getEmailId())
+                        .add("plan_ID",String.valueOf(contents.get(viewType).planNo))
+                        .build(),"shareToggle.php"){
+                    @Override
+                    protected void onPostExecute(JSONObject result) {
+                        Log.e("shareToggle",result.toString());
+                        super.onPostExecute(result);
+                        try {
+                            if(result.getBoolean("result")){
+                                contents.get(viewType).isShare = true;
+                                btnShare.setColorFilter(Color.parseColor("#4267b2"));
+                            }else{
+                                contents.get(viewType).isShare = false;
+                                btnShare.setColorFilter(Color.parseColor("#FF767676"));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.execute();
             }
         });
 

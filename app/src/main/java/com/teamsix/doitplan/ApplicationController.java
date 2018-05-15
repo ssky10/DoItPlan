@@ -2,13 +2,21 @@ package com.teamsix.doitplan;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Location;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.kakao.auth.KakaoSDK;
+import com.teamsix.doitplan.background.AlarmBraodCastReciever;
+import com.teamsix.doitplan.background.AlarmUtils;
+import com.teamsix.doitplan.background.ClipboardService;
+import com.teamsix.doitplan.background.Forecast;
+import com.teamsix.doitplan.background.GPStracker;
 import com.teamsix.doitplan.firebase.MyFirebaseInstanceIDService;
 import com.teamsix.doitplan.kakao.KakaoSDKAdapter;
 
@@ -29,11 +37,74 @@ public class ApplicationController extends Application {
     private static SharedPreferences loginData;
     private static MyPlanDBManager dbManager;
     private static SQLiteDatabase db;
+    private static long clipChangeTime;
+    private static Forecast forecast;
+    private static long endcall = 0;
+    private static AlarmUtils alarmUtils;
+    private static Location lastKnownLocation = null;
+    private static GPStracker gpStracker = null;
+    private static ClipboardService clipboardService;
 
     //static 객체를 반환하는 이유 : 매번 객체를 생성하지 않고 다른 Activity에서도 사용 가능
 
     public static ApplicationController getInstance() {
         return instance;
+    }
+
+    public static long getClipChangeTime() {
+        return clipChangeTime;
+    }
+
+    public static void setClipChangeTime(long clipChangeTime) {
+        ApplicationController.clipChangeTime = clipChangeTime;
+    }
+
+    public static Forecast getForecast() {
+        return forecast;
+    }
+
+    public static void setForecast(Forecast forecast) {
+        ApplicationController.forecast = forecast;
+    }
+
+    public static long getEndcall() {
+        return endcall;
+    }
+
+    public static void setEndcall(long endcall) {
+        ApplicationController.endcall = endcall;
+    }
+
+    public static AlarmUtils getAlarmUtils() {
+        return alarmUtils;
+    }
+
+    public static void setAlarmUtils(AlarmUtils alarmUtils) {
+        ApplicationController.alarmUtils = alarmUtils;
+    }
+
+    public static Location getLastKnownLocation() {
+        return lastKnownLocation;
+    }
+
+    public static void setLastKnownLocation(Location lastKnownLocation) {
+        ApplicationController.lastKnownLocation = lastKnownLocation;
+    }
+
+    public static GPStracker getGpStracker() {
+        return gpStracker;
+    }
+
+    public static void setGpStracker(GPStracker gpStracker) {
+        ApplicationController.gpStracker = gpStracker;
+    }
+
+    public static ClipboardService getClipboardService() {
+        return clipboardService;
+    }
+
+    public static void setClipboardService(ClipboardService clipboardService) {
+        ApplicationController.clipboardService = clipboardService;
     }
 
     @Override
@@ -50,6 +121,10 @@ public class ApplicationController extends Application {
         }
         dbManager = new MyPlanDBManager(getApplicationContext(), DB_NAME, null, DB_VERSION);
         db = dbManager.getWritableDatabase();
+        forecast = new Forecast();
+        if (AlarmBraodCastReciever.isLaunched) {
+            ApplicationController.setAlarmUtils(AlarmUtils.getInstance());
+        }
         KakaoSDK.init(new KakaoSDKAdapter());
     }
 
@@ -86,6 +161,15 @@ public class ApplicationController extends Application {
     }
 
     public static void logout() {
+        new AsyncTask<String, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(String... strings) {
+                MyFirebaseInstanceIDService a = new MyFirebaseInstanceIDService();
+                a.onTokenDelete(strings[0]);
+                return true;
+            }
+        }.execute(emailId);
+
         SharedPreferences.Editor editor = loginData.edit();
         isLogin = false;
         emailId = "";
@@ -132,7 +216,15 @@ public class ApplicationController extends Application {
         values.put("RESULT_VALUE", plan.resultValue);
         values.put("IS_SHARE", plan.getIsShareToInt());
         values.put("IS_WORK", 1);
-        db.replace(DB_TABLE, null, values);
+
+        StringBuffer sb = new StringBuffer();
+        sb.append(" SELECT * FROM ");
+        sb.append(DB_TABLE);
+        sb.append(" WHERE _ID = ");
+        sb.append(plan.planNo);
+        Cursor cursor = db.rawQuery(sb.toString(), null);
+        if(cursor.moveToNext())db.update(DB_TABLE,values,"_ID",new String[]{String.valueOf(plan.planNo)});
+        db.insert(DB_TABLE, null, values);
     }
 
     public static List getAllPlanDB() {
@@ -155,6 +247,60 @@ public class ApplicationController extends Application {
             plan.setIsWorkFormInt(cursor.getInt(7));
             plans.add(plan);
         }
+        cursor.close();
+        return plans;
+    }
+
+    public static List getIfPlanDB(int ifCode) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(" SELECT * FROM ");
+        sb.append(DB_TABLE);
+        sb.append(" WHERE IF_CODE = ");
+        sb.append(ifCode);
+        sb.append(" AND IS_WORK = 1");
+        Cursor cursor = db.rawQuery(sb.toString(), null);
+        List plans = new ArrayList();
+        Plan plan = null;
+        // moveToNext 다음에 데이터가 있으면 true 없으면 false
+        while (cursor.moveToNext()) {
+            plan = new Plan();
+            plan.planNo = cursor.getInt(0);
+            plan.title = cursor.getString(1);
+            plan.ifCode = cursor.getInt(2);
+            plan.ifValue = cursor.getString(3);
+            plan.resultCode = cursor.getInt(4);
+            plan.resultValue = cursor.getString(5);
+            plan.setIsShareFormInt(cursor.getInt(6));
+            plan.setIsWorkFormInt(cursor.getInt(7));
+            plans.add(plan);
+        }
+        cursor.close();
+        return plans;
+    }
+
+    public static List getResultPlanDB(int resultCode) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(" SELECT * FROM ");
+        sb.append(DB_TABLE);
+        sb.append("WHERE RESULT_CODE = ");
+        sb.append(resultCode);
+        Cursor cursor = db.rawQuery(sb.toString(), null);
+        List plans = new ArrayList();
+        Plan plan = null;
+        // moveToNext 다음에 데이터가 있으면 true 없으면 false
+        while (cursor.moveToNext()) {
+            plan = new Plan();
+            plan.planNo = cursor.getInt(0);
+            plan.title = cursor.getString(1);
+            plan.ifCode = cursor.getInt(2);
+            plan.ifValue = cursor.getString(3);
+            plan.resultCode = cursor.getInt(4);
+            plan.resultValue = cursor.getString(5);
+            plan.setIsShareFormInt(cursor.getInt(6));
+            plan.setIsWorkFormInt(cursor.getInt(7));
+            plans.add(plan);
+        }
+        cursor.close();
         return plans;
     }
 
@@ -171,6 +317,7 @@ public class ApplicationController extends Application {
     @Override
     public void onTerminate() {
         super.onTerminate();
+        db.close();
         instance = null;
     }
 }

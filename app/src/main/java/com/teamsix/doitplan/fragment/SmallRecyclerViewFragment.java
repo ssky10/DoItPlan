@@ -48,7 +48,9 @@ public class SmallRecyclerViewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
 
-        final List<Plan> items = ApplicationController.getAllPlanDB();
+        List<Plan> items = ApplicationController.getAllPlanDB();
+
+        if(items.size() == 0) items.add(new Plan(-1,"나의 Plan이 없습니다.","admin",0));
 
         final SwipeRefreshLayout mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
 

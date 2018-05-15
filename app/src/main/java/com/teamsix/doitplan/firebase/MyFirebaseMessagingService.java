@@ -14,8 +14,14 @@ import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.MainActivity;
+import com.teamsix.doitplan.Plan;
 import com.teamsix.doitplan.R;
+import com.teamsix.doitplan.background.SendNotification;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -30,52 +36,36 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
-            sendNotification(remoteMessage.getData().get("title"),remoteMessage.getData().get("message"));
+            if(remoteMessage.getData().get("type").equals("noti")){
+                SendNotification.sendNotification(this,remoteMessage.getData().get("title"),remoteMessage.getData().get("message"));
+            }else if(remoteMessage.getData().get("type").equals("newplan")){
+                JSONObject planJson = null;
+                try {
+                    planJson = new JSONObject(remoteMessage.getData().get("message"));
+                    Plan plan = new Plan();
+                    plan.planNo = planJson.getInt("plan_no");
+                    plan.title = planJson.getString("msg");
+                    plan.ifCode = planJson.getInt("if_code");
+                    plan.ifValue = planJson.getString("if_value");
+                    plan.resultCode = planJson.getInt("that_code");
+                    plan.resultValue = planJson.getString("that_value");
+                    plan.setIsShareFormInt(planJson.getInt("is_share"));
+                    plan.likes = planJson.getInt("likes_num");
+                    plan.setIsWorkFormInt(1);
+                    ApplicationController.writePlanDB(plan);
+                    SendNotification.sendNotification(this,"새로운 Plan 추가",remoteMessage.getData().get("title")+"이 추가되었습니다.");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
 
 // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-            sendNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
+            SendNotification.sendNotification(this,remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
         }
-    }
-
-    private void sendNotification(String messageTitle, String messageBody) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
-
-        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(messageTitle)
-                .setContentText(messageBody)
-                .setTicker(messageBody)
-                .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setShowWhen(true)
-                .setColor(Color.GREEN)
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setContentIntent(pendingIntent)
-                .setPriority(Notification.PRIORITY_MAX);
-
-
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel mChannel = new NotificationChannel("DIP", "DIP_Notification", NotificationManager.IMPORTANCE_HIGH);
-            mChannel.enableLights(true);
-            mChannel.setLightColor(Color.GREEN);
-            mChannel.enableVibration(true);
-            notificationManager.createNotificationChannel(mChannel);
-            notification.setChannelId("DIP");
-        }
-
-        notificationManager.notify(notificationID++, notification.build());
-
-        Log.d(TAG, "Message Notification title: " + messageTitle);
     }
 
 }

@@ -11,10 +11,12 @@
     <string name="error_incorrect_password">잘못된 비밀번호 입니다.</string>
     <string name="error_field_required">필수 영역입니다.</string>
     <string name="permission_rationale">"주소록은 이메일 자동완성에 필요한 권한입니다."</string>
-    <string name="KAKAO_KEY">d29ced6a7ac6ee30a72160406cfb49c3</string>
+    <string name="KAKAO_KEY">24f01f9153dedac4b352a8c48a44cf2b</string>
     <string name="facebook_app_id">1880378488659927</string>
     <string name="fb_login_protocol_scheme">fb1880378488659927</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="default_notification_channel_id" translatable="false">DIP</string>
     <string name="title_activity_maps">Map</string>
+    <string name="white_title">권한이 필요합니다.</string>
+    <string name="white_msg">어플을 사용하기 위해서는 해당 어플을 "배터리 사용량 최적화" 목록에서 제외하는 권한이 필요합니다. 계속하시겠습니까?</string>
 </resources>

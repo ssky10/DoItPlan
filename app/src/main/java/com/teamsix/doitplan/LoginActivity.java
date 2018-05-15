@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -63,6 +64,7 @@ import com.kakao.usermgmt.response.model.UserProfile;
 import com.kakao.util.exception.KakaoException;
 import com.kakao.util.helper.log.Logger;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -83,6 +85,7 @@ import cz.msebera.android.httpclient.client.entity.UrlEncodedFormEntity;
 import cz.msebera.android.httpclient.client.methods.HttpPost;
 import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.message.BasicNameValuePair;
+import okhttp3.FormBody;
 
 import static android.Manifest.permission.READ_CONTACTS;
 import static com.kakao.util.helper.Utility.getPackageInfo;
@@ -97,7 +100,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private LoginButton loginButton;
     private Button btnRegist;
     private Button btnFb;
-    private SharedPreferences appData;
     private UserProfile profile;
     private String token;
 
@@ -123,11 +125,20 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        appData = getSharedPreferences("loginData", MODE_PRIVATE);
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        boolean isWhiteListing = false;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            isWhiteListing = pm.isIgnoringBatteryOptimizations(LoginActivity.this.getPackageName());
+        }
+
+        if (!isWhiteListing) {
+            PermissionUtils.permissionWhitelist(this);
+        }
+
 
         if (ApplicationController.getIsLogin()) {
             redirectSignupActivity();
-        }else{
+        } else {
 
             // Set up the login form.
             mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -374,7 +385,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                         @Override
                         protected void onPostExecute(final JSONObject success) {
-                            if(asyncDialog != null) asyncDialog.dismiss();
+                            if (asyncDialog != null) asyncDialog.dismiss();
                             if (success == null) {
                                 Toast.makeText(LoginActivity.this, "서버접속에 실패했습니다.", Toast.LENGTH_SHORT).show();
                             } else {
@@ -475,11 +486,38 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     @SuppressLint("StaticFieldLeak")
     protected void redirectSignupActivity() {
-        new ConnectServer.GetMyPlanTask(LoginActivity.this){
+        new ConnectServer.ConnectServerDialogTask(
+                LoginActivity.this,
+                "로딩중입니다...",
+                new FormBody.Builder()
+                        .add("email", ApplicationController.getEmailId())
+                        .build(),
+                "getMyPlan.php") {
 
             @Override
-            protected void onPostExecute(ArrayList<Plan> result) {
-                if(asyncDialog != null) asyncDialog.dismiss();
+            protected void onPostExecute(String result) {
+                super.onPostExecute(result);
+                try {
+                    Plan plan;
+                    JSONArray jObjects = new JSONArray(result);
+                    for (int i = 0; i < jObjects.length(); i++) {
+                        JSONObject planJson = jObjects.getJSONObject(i);
+                        plan = new Plan();
+                        plan.planNo = planJson.getInt("plan_no");
+                        plan.title = planJson.getString("msg");
+                        plan.ifCode = planJson.getInt("if_code");
+                        plan.ifValue = planJson.getString("if_value");
+                        plan.resultCode = planJson.getInt("that_code");
+                        plan.resultValue = planJson.getString("that_value");
+                        plan.setIsShareFormInt(planJson.getInt("is_share"));
+                        plan.likes = planJson.getInt("likes_num");
+                        plan.setIsWorkFormInt(1);
+                        ApplicationController.writePlanDB(plan);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 final Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);

@@ -13,11 +13,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -33,6 +36,15 @@ import cz.msebera.android.httpclient.client.entity.UrlEncodedFormEntity;
 import cz.msebera.android.httpclient.client.methods.HttpPost;
 import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.message.BasicNameValuePair;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static java.lang.Math.asin;
 
 public class ConnectServer {
     /**
@@ -457,8 +469,8 @@ public class ConnectServer {
         private final int ifCode;
         private final int resultCode;
         private final String msg;
-        private Map<String, String> ifValue = new HashMap();
-        private Map<String, String> resultValue = new HashMap();
+        private Map<String, Object> ifValue = new HashMap();
+        private Map<String, Object> resultValue = new HashMap();
 
 
         public ProgressDialog asyncDialog;
@@ -482,18 +494,18 @@ public class ConnectServer {
                     break;
                 case Plan.IF_TIME:
                     this.ifValue.put("timeclock", ifValue.getStringExtra("timeclock"));
-                    this.ifValue.put("timedaysun", String.valueOf(ifValue.getBooleanExtra("timedaysun", false)));
-                    this.ifValue.put("timedaymon", String.valueOf(ifValue.getBooleanExtra("timedaymon", false)));
-                    this.ifValue.put("timedaytue", String.valueOf(ifValue.getBooleanExtra("timedaytue", false)));
-                    this.ifValue.put("timedaywed", String.valueOf(ifValue.getBooleanExtra("timedaywed", false)));
-                    this.ifValue.put("timedaythu", String.valueOf(ifValue.getBooleanExtra("timedaythu", false)));
-                    this.ifValue.put("timedayfri", String.valueOf(ifValue.getBooleanExtra("timedayfri", false)));
-                    this.ifValue.put("timedaysat", String.valueOf(ifValue.getBooleanExtra("timedaysat", false)));
+                    this.ifValue.put("timedaysun", ifValue.getBooleanExtra("timedaysun", false));
+                    this.ifValue.put("timedaymon", ifValue.getBooleanExtra("timedaymon", false));
+                    this.ifValue.put("timedaytue", ifValue.getBooleanExtra("timedaytue", false));
+                    this.ifValue.put("timedaywed", ifValue.getBooleanExtra("timedaywed", false));
+                    this.ifValue.put("timedaythu", ifValue.getBooleanExtra("timedaythu", false));
+                    this.ifValue.put("timedayfri", ifValue.getBooleanExtra("timedayfri", false));
+                    this.ifValue.put("timedaysat", ifValue.getBooleanExtra("timedaysat", false));
                     break;
                 case Plan.IF_WEATHER:
-                    this.ifValue.put("timedaysunny", String.valueOf(ifValue.getBooleanExtra("timedaysunny", false)));
-                    this.ifValue.put("timedayrain", String.valueOf(ifValue.getBooleanExtra("timedayrain", false)));
-                    this.ifValue.put("timedaysnow", String.valueOf(ifValue.getBooleanExtra("timedaysnow", false)));
+                    this.ifValue.put("timedaysunny", ifValue.getBooleanExtra("timedaysunny", false));
+                    this.ifValue.put("timedayrain", ifValue.getBooleanExtra("timedayrain", false));
+                    this.ifValue.put("timedaysnow", ifValue.getBooleanExtra("timedaysnow", false));
                     break;
                 case Plan.IF_BATTERY:
                     this.ifValue.put("betterypercent", ifValue.getStringExtra("betterypercent"));
@@ -502,8 +514,8 @@ public class ConnectServer {
                     this.ifValue.put("callnum", ifValue.getStringExtra("callnum"));
                     break;
                 case Plan.IF_LOC:
-                    this.ifValue.put("lat", String.valueOf(ifValue.getDoubleArrayExtra("latlng")[0]));
-                    this.ifValue.put("lng", String.valueOf(ifValue.getDoubleArrayExtra("latlng")[1]));
+                    this.ifValue.put("lat", ifValue.getDoubleArrayExtra("latlng")[0]);
+                    this.ifValue.put("lng", ifValue.getDoubleArrayExtra("latlng")[1]);
                     break;
             }
             resultCode = resultValue.getIntExtra("Result", 0);
@@ -530,8 +542,8 @@ public class ConnectServer {
                     this.resultValue.put("naverstring", resultValue.getStringExtra("naverstring"));
                     break;
                 case Plan.RESULT_SETTING:
-                    this.resultValue.put("setblue", resultValue.getStringExtra("setblue"));
-                    this.resultValue.put("setmobile", resultValue.getStringExtra("setmobile"));
+                    this.resultValue.put("setblue", resultValue.getBooleanExtra("setblue",false));
+                    this.resultValue.put("setmobile", resultValue.getBooleanExtra("setmobile",false));
                     break;
             }
         }
@@ -573,8 +585,10 @@ public class ConnectServer {
                 nameValues.add(new BasicNameValuePair(
                         "resultCode", URLDecoder.decode(String.valueOf(resultCode), "UTF-8")));
                 JSONObject json = new JSONObject();
-                json.put("ifValue", ifValue);
-                json.put("resultValue", resultValue);
+                Gson gson = new Gson();
+
+                json.put("ifValue", gson.toJson(ifValue));
+                json.put("resultValue", gson.toJson(resultValue));
                 nameValues.add(new BasicNameValuePair(
                         "value", URLDecoder.decode(json.toString(), "UTF-8")));
                 nameValues.add(new BasicNameValuePair(
@@ -618,11 +632,227 @@ public class ConnectServer {
         }
     }
 
-    public static class GetRecommendPlanTask extends AsyncTask<Void, Void, ArrayList<Plan>> {
+    public static class GetForecastTask extends AsyncTask<Void, Void, JSONObject> {
 
-        public ProgressDialog asyncDialog;
+        int x,y;
+        final String SERVICE_KEY = "tnC6l3h4zlaRPJ3gKXJRN8TxzoXz7H8V0DnVFOm6p2dumQizuEZ6Y45nI501a8PC%2BsY4BSIxTIGzlYxB9fpP9Q%3D%3D";
+        String baseDate,baseTime;
 
-        public GetRecommendPlanTask(Context context) {
+        public GetForecastTask(double lat, double lon, String date, String time){
+            LatXLngY convert = convertGRID_GPS(0,lat,lon);
+            x = (int)convert.x;
+            y = (int)convert.y;
+            baseDate = date;
+            baseTime = time;
+        }
+
+        private LatXLngY convertGRID_GPS(int mode, double lat_X, double lon_Y )
+        {
+            double RE = 6371.00877; // 지구 반경(km)
+            double GRID = 5.0; // 격자 간격(km)
+            double SLAT1 = 30.0; // 투영 위도1(degree)
+            double SLAT2 = 60.0; // 투영 위도2(degree)
+            double OLON = 126.0; // 기준점 경도(degree)
+            double OLAT = 38.0; // 기준점 위도(degree)
+            double XO = 43; // 기준점 X좌표(GRID)
+            double YO = 136; // 기1준점 Y좌표(GRID)
+
+            //
+            // LCC DFS 좌표변환 ( code : "TO_GRID"(위경도->좌표, lat_X:위도,  lng_Y:경도), "TO_GPS"(좌표->위경도,  lat_X:x, lng_Y:y) )
+            //
+
+            double DEGRAD = Math.PI / 180.0;
+            double RADDEG = 180.0 / Math.PI;
+
+            double re = RE / GRID;
+            double slat1 = SLAT1 * DEGRAD;
+            double slat2 = SLAT2 * DEGRAD;
+            double olon = OLON * DEGRAD;
+            double olat = OLAT * DEGRAD;
+
+            double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+            sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
+            double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+            sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
+            double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+            ro = re * sf / Math.pow(ro, sn);
+            LatXLngY rs = new LatXLngY();
+
+            if (mode == 0) {
+                rs.lat = lat_X;
+                rs.lng = lon_Y;
+                double ra = Math.tan(Math.PI * 0.25 + (lat_X) * DEGRAD * 0.5);
+                ra = re * sf / Math.pow(ra, sn);
+                double theta = lon_Y * DEGRAD - olon;
+                if (theta > Math.PI) theta -= 2.0 * Math.PI;
+                if (theta < -Math.PI) theta += 2.0 * Math.PI;
+                theta *= sn;
+                rs.x = Math.floor(ra * Math.sin(theta) + XO + 0.5);
+                rs.y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
+            }
+            else {
+                rs.x = lat_X;
+                rs.y = lon_Y;
+                double xn = lat_X - XO;
+                double yn = ro - lon_Y + YO;
+                double ra = Math.sqrt(xn * xn + yn * yn);
+                if (sn < 0.0) {
+                    ra = -ra;
+                }
+                double alat = Math.pow((re * sf / ra), (1.0 / sn));
+                alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
+
+                double theta = 0.0;
+                if (Math.abs(xn) <= 0.0) {
+                    theta = 0.0;
+                }
+                else {
+                    if (Math.abs(yn) <= 0.0) {
+                        theta = Math.PI * 0.5;
+                        if (xn < 0.0) {
+                            theta = -theta;
+                        }
+                    }
+                    else theta = Math.atan2(xn, yn);
+                }
+                double alon = theta / sn + olon;
+                rs.lat = alat * RADDEG;
+                rs.lng = alon * RADDEG;
+            }
+            return rs;
+        }
+
+        class LatXLngY
+        {
+            public double lat;
+            public double lng;
+
+            public double x;
+            public double y;
+
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            JSONObject result = null;
+            OkHttpClient client = new OkHttpClient();
+            StringBuffer url = new StringBuffer();
+            url.append("ServiceKey="+SERVICE_KEY);
+            url.append("&base_date="+baseDate);
+            url.append("&base_time="+baseTime);
+            url.append("&nx="+x);
+            url.append("&ny="+y);
+            url.append("&numOfRows=10&_type=json");
+
+
+            Request request = new Request.Builder()
+                    .url("http://newsky2.kma.go.kr/service/SecndSrtpdFrcstInfoService2/ForecastGrib?"+url.toString())
+                    .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                //Log.e("Forecast",response.body().string());
+                result = new JSONObject(response.body().string());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+
+    }
+
+    public static class PuchNotificationTask extends AsyncTask<Void, Void, JSONObject> {
+
+        String title,msg;
+
+        public PuchNotificationTask(String title, String msg){
+            this.title = title;
+            this.msg = msg;
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            JSONObject result = null;
+            OkHttpClient client = new OkHttpClient();
+            RequestBody body = new FormBody.Builder()
+                    .add("email", ApplicationController.getEmailId())
+                    .add("title",title)
+                    .add("message",msg)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url("https://doitplan.ml/dip/pushmsg.php")
+                    .post(body)
+                    .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                //Log.e("PuchNotificationTask",response.body().string());
+
+                result = new JSONObject(response.body().string());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return result;
+        }
+
+
+    }
+
+    public static class ConnectServerTask extends AsyncTask<Void, Void, JSONObject> {
+
+        RequestBody post;
+        String url;
+
+        public ConnectServerTask(RequestBody data, String url){
+            this.post = data;
+            this.url = url;
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            JSONObject result = null;
+            OkHttpClient client = new OkHttpClient();
+
+            Request request = new Request.Builder()
+                    .url("https://doitplan.ml/dip/"+url)
+                    .post(post)
+                    .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                //Log.e("PuchNotificationTask",response.body().string());
+
+                result = new JSONObject(response.body().string());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return result;
+        }
+
+
+    }
+
+    public static class ConnectServerDialogTask extends AsyncTask<Void, Void, String> {
+
+        private ProgressDialog asyncDialog;
+        RequestBody post;
+        String url;
+        String msg;
+
+        public ConnectServerDialogTask(Context context, String msg, RequestBody data, String url){
+            this.post = data;
+            this.url = url;
+            this.msg = msg;
             asyncDialog = new ProgressDialog(context);
         }
 
@@ -637,7 +867,7 @@ public class ConnectServer {
                 public void onCancel(DialogInterface dialog) {
                 }
             });
-            asyncDialog.setMessage("로딩중입니다...");
+            asyncDialog.setMessage(msg);
 
             // show dialog
             asyncDialog.show();
@@ -645,198 +875,37 @@ public class ConnectServer {
         }
 
         @Override
-        protected ArrayList<Plan> doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            ArrayList<Plan> plans = new ArrayList<>();
-            Boolean result = false;
-            JSONArray jObjects = null;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/getRecommendPlan.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
+        protected String doInBackground(Void... voids) {
+            String result = null;
+            OkHttpClient client = new OkHttpClient();
+
+            Request request = new Request.Builder()
+                    .url("https://doitplan.ml/dip/"+url)
+                    .post(post)
+                    .build();
 
             try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf); //반환값 문자열로 변경
-                }
+                Response response = client.newCall(request).execute();
+                //Log.e("PuchNotificationTask",response.body().string());
 
-                Log.e("response", str.toString());
-
-                jObjects = new JSONArray(str.toString());
-                for (int i = 0; i < jObjects.length(); i++) {
-                    JSONObject plan = jObjects.getJSONObject(i);
-                    plans.add(new Plan(plan.getInt("plan_no"), plan.getString("msg"), plan.getString("nickname"), plan.getInt("likes_num")));
-                }
-
-            } catch (Exception e) {
+                result = response.body().string();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            // TODO: register the new account here.
-            return plans; //결과 값 반환
-        }
-    }
-
-    public static class GetMyPlanTask extends AsyncTask<Void, Void, ArrayList<Plan>> {
-
-        public ProgressDialog asyncDialog;
-
-        public GetMyPlanTask(Context context) {
-            asyncDialog = new ProgressDialog(context);
+            return result;
         }
 
         @Override
-        protected void onPreExecute() {
-            asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            asyncDialog.setCanceledOnTouchOutside(false);
-            asyncDialog.setCancelable(false);
-            asyncDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                }
-            });
-            asyncDialog.setMessage("로딩중입니다...");
-
-            // show dialog
-            asyncDialog.show();
-            super.onPreExecute();
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            asyncDialog.dismiss();
         }
 
         @Override
-        protected ArrayList<Plan> doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            ArrayList<Plan> plans = new ArrayList<>();
-            Boolean result = false;
-            JSONArray jObjects = null;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/getMyPlan.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(ApplicationController.getEmailId(), "UTF-8")));
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf); //반환값 문자열로 변경
-                }
-
-                Log.e("response", str.toString());
-                Plan plan;
-                jObjects = new JSONArray(str.toString());
-                for (int i = 0; i < jObjects.length(); i++) {
-                    JSONObject planJson = jObjects.getJSONObject(i);
-                    plan = new Plan();
-                    plan.planNo = planJson.getInt("plan_no");
-                    plan.title = planJson.getString("msg");
-                    plan.ifCode = planJson.getInt("if_code");
-                    plan.ifValue = planJson.getString("if_value");
-                    plan.resultCode = planJson.getInt("that_code");
-                    plan.resultValue = planJson.getString("that_value");
-                    plan.setIsShareFormInt(planJson.getInt("is_share"));
-                    plan.likes = planJson.getInt("likes_num");
-                    plan.setIsWorkFormInt(1);
-                    ApplicationController.writePlanDB(plan);
-                    plans.add(plan);
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return plans; //결과 값 반환
-        }
-    }
-
-    public static class ShareToggleTask extends AsyncTask<Void, Void, Boolean> {
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            ArrayList<Plan> plans = new ArrayList<>();
-            Boolean result = false;
-            JSONObject jObjects = null;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/ShareToggle.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                nameValues.add(new BasicNameValuePair(
-                        "plan_ID", URLDecoder.decode(ApplicationController.getEmailId(), "UTF-8")));
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf); //반환값 문자열로 변경
-                }
-
-                Log.e("response", str.toString());
-                Plan plan;
-                jObjects = new JSONObject(str.toString());
-                result = jObjects.getBoolean("result");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return result; //결과 값 반환
+        protected void onCancelled() {
+            asyncDialog.dismiss();
+            super.onCancelled();
         }
     }
 

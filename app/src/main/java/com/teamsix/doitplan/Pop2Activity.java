@@ -78,6 +78,7 @@ public class Pop2Activity extends AppCompatActivity {
             text2.setVisibility(View.GONE);
 
         }else if(data == Plan.RESULT_APP) {
+            txtText.setText("특정어플리케이션을 실행한다.");
             getPackageList();
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, appNameList);
             listview.setAdapter(adapter);
@@ -102,7 +103,6 @@ public class Pop2Activity extends AppCompatActivity {
             txtText.setText("알림메세지를 보낸다.");
             text1.setHint("내용");
             text2.setVisibility(View.GONE);
-
         }
         else if(data == Plan.RESULT_NAVER) {
             txtText.setText("naver 검색을 한다.");

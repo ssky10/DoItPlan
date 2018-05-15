@@ -28,6 +28,7 @@ public class Plan {
     public String planner = "";
     public int planNo = -1;
     public int likes = 0;
+    public boolean isLike;
     public int ifCode = -1;
     public int resultCode = -1;
     public String ifValue = "";
@@ -71,6 +72,22 @@ public class Plan {
     public void setIsWorkFormInt(int num){
         if(num == 0) isWork = false;
         else isWork = true;
+    }
+
+    public Plan clone(){
+        Plan p = new Plan();
+        p.title = title;
+        p.planner = planner;
+        p.planNo = planNo;
+        p.likes = likes;
+        p.isLike = isLike;
+        p.ifCode = ifCode;
+        p.resultCode = resultCode;
+        p.ifValue = ifValue;
+        p.resultValue = resultValue;
+        p.isShare = isShare;
+        p.isWork = isWork;
+        return p;
     }
 
 

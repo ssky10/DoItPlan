@@ -72,6 +72,7 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                 ((Activity)parent.getContext()).startActivityForResult(contents.get(1),1); //프래그먼트 상에서 인텐트 이동
             }
         });
+        textview1.setClickable(false);
         return new RecyclerView.ViewHolder(view) {
         };
     }//newplan레이아웃
@@ -93,6 +94,7 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
             textview.setText(str);
             TextView textview1 = (TextView)view.findViewById(R.id.textView7);
             textview1.setTextColor(Color.parseColor("#FF00BCD4"));
+            textview1.setClickable(true);
         }
     }
 
@@ -108,6 +110,7 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         textview.setText("조건");
         textview = (TextView)view.findViewById(R.id.textView7);
         textview.setTextColor(Color.parseColor("#767676"));
+        textview.setClickable(false);
         textview.setText("결과");
     }
 

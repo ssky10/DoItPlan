@@ -1,10 +1,16 @@
 package com.teamsix.doitplan;
 
+import android.Manifest;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+
+import com.teamsix.doitplan.background.ClipboardService;
 
 public class IfListActivity extends AppCompatActivity {
 
@@ -29,9 +35,15 @@ public class IfListActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button4:
-                intent = new Intent(this, Pop1Activity.class);
-                intent.putExtra("if", Plan.IF_KAKAO);
-                startActivityForResult(intent, 1);
+                boolean isPermissionAllowed = PermissionUtils.isNotiPermissionAllowed(this);
+                if(!isPermissionAllowed) {
+                    Intent intentPermission = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                    startActivity(intentPermission);
+                }else{
+                    intent = new Intent(this, Pop1Activity.class);
+                    intent.putExtra("if", Plan.IF_KAKAO);
+                    startActivityForResult(intent, 1);
+                }
                 break;
             case R.id.button5:
                 intent = new Intent(this, Pop1Activity.class);
@@ -49,8 +61,19 @@ public class IfListActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button8:
+                if(ApplicationController.getClipboardService()==null) {
+                    Intent mIntent=  new Intent(getApplicationContext(), ClipboardService.class);
+                    startService(mIntent);
+                }
+                intent = new Intent();
+                intent.putExtra("if", Plan.IF_CLIP);
+                intent.putExtra("type","if");
+                setResult(RESULT_OK, intent);
+                //액티비티(팝업) 닫기
+                finish();
                 break;
             case R.id.button9:
+                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},123);
                 intent = new Intent(this, MapsActivity.class);
                 intent.putExtra("if", Plan.IF_LOC);
                 startActivityForResult(intent, 1);

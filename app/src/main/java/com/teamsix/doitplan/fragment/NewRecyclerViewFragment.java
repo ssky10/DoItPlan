@@ -39,6 +39,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static android.app.Activity.RESULT_OK;
+
 /**
  * Created by florentchampigny on 24/04/15.
  */
@@ -97,56 +99,60 @@ public class NewRecyclerViewFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.e("onActivityResult","NewRecyclerViewFragment-start");
         super.onActivityResult(requestCode, resultCode, data);
-        String type = data.getStringExtra("type");
-        Log.e("type",type);
-        if(type.equals("if")){
-            newRecyclerViewAdapter.setIfStr(true, Plan.IF_STR[data.getIntExtra("if",0)]);
-            ifInfo = data;
-        }else if(type.equals("Result")){
-            newRecyclerViewAdapter.setResultStr(true,Plan.RESULT_STR[data.getIntExtra("Result",0)]);
-            resultInfo = data;
-            AlertDialog.Builder ad = new AlertDialog.Builder(new ContextThemeWrapper(NewRecyclerViewFragment.this.getContext(), R.style.Theme_AppCompat_Dialog));
+        if(requestCode==1) {
+            if (resultCode == RESULT_OK) {
+                String type = data.getStringExtra("type");
+                Log.e("type", type);
+                if (type.equals("if")) {
+                    newRecyclerViewAdapter.setIfStr(true, Plan.IF_STR[data.getIntExtra("if", 0)]);
+                    ifInfo = data;
+                } else if (type.equals("Result")) {
+                    newRecyclerViewAdapter.setResultStr(true, Plan.RESULT_STR[data.getIntExtra("Result", 0)]);
+                    resultInfo = data;
+                    AlertDialog.Builder ad = new AlertDialog.Builder(new ContextThemeWrapper(NewRecyclerViewFragment.this.getContext(), R.style.Theme_AppCompat_Dialog));
 
-            ad.setTitle("타이틀 설정");       // 제목 설정
-            ad.setMessage("해당 Plan의 이름을 정해주세요.");   // 내용 설정
+                    ad.setTitle("타이틀 설정");       // 제목 설정
+                    ad.setMessage("해당 Plan의 이름을 정해주세요.");   // 내용 설정
 
-            final EditText et = new EditText(NewRecyclerViewFragment.this.getContext());
-            et.setText(Plan.IF_STRLONG[ifInfo.getIntExtra("if",0)]+Plan.RESULT_STRLONG[resultInfo.getIntExtra("Result",0)]);
-            ad.setView(et);
+                    final EditText et = new EditText(NewRecyclerViewFragment.this.getContext());
+                    et.setText(Plan.IF_STRLONG[ifInfo.getIntExtra("if", 0)] + Plan.RESULT_STRLONG[resultInfo.getIntExtra("Result", 0)]);
+                    ad.setView(et);
 
-            ad.setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    @SuppressLint("StaticFieldLeak")
-                    ConnectServer.newPlanTask task = new ConnectServer.newPlanTask(ifInfo,resultInfo,et.getText().toString(), NewRecyclerViewFragment.this.getContext()) {
+                    ad.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                         @Override
-                        protected void onPostExecute(Boolean result) {
-                            super.onPostExecute(result);
-                            asyncDialog.dismiss();
-                            if (result) {
-                                Toast.makeText(getContext(),"성공적으로 등록되었습니다.",Toast.LENGTH_SHORT).show();
-                                newRecyclerViewAdapter.setDefault();
-                            }else{
-                                Toast.makeText(getContext(),"오류가 발생하였습니다.",Toast.LENGTH_SHORT).show();
-                            }
+                        public void onClick(DialogInterface dialog, int which) {
+                            @SuppressLint("StaticFieldLeak")
+                            ConnectServer.newPlanTask task = new ConnectServer.newPlanTask(ifInfo, resultInfo, et.getText().toString(), NewRecyclerViewFragment.this.getContext()) {
+                                @Override
+                                protected void onPostExecute(Boolean result) {
+                                    super.onPostExecute(result);
+                                    asyncDialog.dismiss();
+                                    if (result) {
+                                        Toast.makeText(getContext(), "성공적으로 등록되었습니다.", Toast.LENGTH_SHORT).show();
+                                        newRecyclerViewAdapter.setDefault();
+                                    } else {
+                                        Toast.makeText(getContext(), "오류가 발생하였습니다.", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            };
+                            task.execute();
+                            dialog.dismiss();
                         }
-                    };
-                    task.execute();
-                    dialog.dismiss();
+                    });
+
+                    ad.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();     //닫기
+                            // Event
+                        }
+                    });
+
+                    ad.show();
+
                 }
-            });
-
-            ad.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();     //닫기
-                    // Event
-                }
-            });
-
-            ad.show();
-
+                Log.e("onActivityResult", "NewRecyclerViewFragment-end");
+            }
         }
-        Log.e("onActivityResult","NewRecyclerViewFragment-end");
     }
 }

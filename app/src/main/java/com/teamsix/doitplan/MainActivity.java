@@ -1,6 +1,8 @@
 package com.teamsix.doitplan;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,9 +15,14 @@ import android.widget.Toast;
 
 import com.github.florent37.materialviewpager.MaterialViewPager;
 import com.github.florent37.materialviewpager.header.HeaderDesign;
+import com.teamsix.doitplan.background.CallStateReceiver;
+import com.teamsix.doitplan.background.Forecast;
 import com.teamsix.doitplan.fragment.NewRecyclerViewFragment;
 import com.teamsix.doitplan.fragment.RecyclerViewFragment;
 import com.teamsix.doitplan.fragment.SmallRecyclerViewFragment;
+
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -26,6 +33,8 @@ public class MainActivity extends DrawerActivity {
     @BindView(R.id.materialViewPager)
     MaterialViewPager mViewPager;//
     NewRecyclerViewFragment newRecyclerViewFragment;
+    BroadcastReceiver receiver = null;
+    Forecast forecast = new Forecast();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,8 +103,8 @@ public class MainActivity extends DrawerActivity {
                 switch (page) {
                     case 0:
                         return HeaderDesign.fromColorResAndUrl(
-                                R.color.green,//타인의Plan배경
-                                "http://phandroid.s3.amazonaws.com/wp-content/uploads/2014/06/android_google_moutain_google_now_1920x1080_wallpaper_Wallpaper-HD_2560x1600_www.paperhi.com_-640x400.jpg");
+                                R.color.blue,//타인의Plan배경
+                                "http://www.droid-life.com/wp-content/uploads/2014/10/lollipop-wallpapers10.jpg");
                     case 1:
                         return HeaderDesign.fromColorResAndUrl(
                                 R.color.blue,//새로운Plan
@@ -115,13 +124,44 @@ public class MainActivity extends DrawerActivity {
         mViewPager.getViewPager().setOffscreenPageLimit(mViewPager.getViewPager().getAdapter().getCount());
         mViewPager.getPagerTitleStrip().setViewPager(mViewPager.getViewPager());
 
+        final View logo = findViewById(R.id.logo_white);
+        if (logo != null) {
+            logo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getApplicationContext(),ApplicationController.getForecast().getSky()+"/"+ApplicationController.getForecast().getTemperature(),Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+
+
+        //mViewPager.notifyHeaderChanged();
+        //Toast.makeText(getApplicationContext(), "Yes, the title is clickable", Toast.LENGTH_SHORT).show();
+        //Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+        //startActivity(intent);
+        //forecast.getData(35.154483, 128.098444,nowDate,nowTime);
+
+        // 인텐트 필터 설정
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.intent.action.PHONE_STATE");
+
+        // 동적리시버 생성
+        receiver = new CallStateReceiver();
+        // 위에서 설정한 인텐트필터+리시버정보로 리시버 등록
+        registerReceiver(receiver, intentFilter);
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.e("onActivityResult","MainActivity-start");
-        newRecyclerViewFragment.onActivityResult(requestCode,resultCode,data);
-        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==1) {
+            if (resultCode == RESULT_OK) {
+                newRecyclerViewFragment.onActivityResult(requestCode, resultCode, data);
+                super.onActivityResult(requestCode, resultCode, data);
+            }
+        }
         Log.e("onActivityResult","MainActivity-end");
     }
 

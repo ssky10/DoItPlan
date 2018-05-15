@@ -44,9 +44,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:15.0.2'
     implementation 'com.squareup.okhttp3:okhttp:3.7.0'
     implementation group: 'com.kakao.sdk', name: 'usermgmt', version: project.KAKAO_SDK_VERSION
+    implementation group: 'com.kakao.sdk', name: 'kakaotalk', version: project.KAKAO_SDK_VERSION
     implementation 'com.facebook.android:facebook-login:4.32.0'
     implementation group: 'cz.msebera.android', name: 'httpclient', version: '4.4.1.2'
     implementation 'com.jaredrummler:colorpicker:1.0.2'
+    implementation 'com.google.code.gson:gson:2.8.4'
 
     //implementation 'com.android.support:design:26.1.0'
     implementation 'com.google.android.gms:play-services-maps:15.0.0'
