@@ -10,13 +10,13 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="131dp"
-        tools:layout_editor_absoluteY="534dp"
-        tools:ignore="MissingConstraints">
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="8dp">
@@ -52,25 +52,29 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="50px"
+                android:layout_marginBottom="30dp"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingLeft="25dp"
+                android:paddingRight="25dp">
 
                 <LinearLayout
-                    android:layout_width="400px"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="50px"
-                    android:orientation="vertical">
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentRight="true"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingRight="15dp">
 
                     <ImageButton
                         android:id="@+id/button11"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
+                        android:layout_height="135dp"
                         android:background="@color/blue"
                         android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_call_white_48px"
-                        android:text="Button" />
+                        android:text="Button"
+                        app:srcCompat="@drawable/ic_call_white_48px" />
 
                     <TextView
                         android:id="@+id/textView21"
@@ -83,19 +87,21 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="400px"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingLeft="15dp">
 
                     <ImageButton
                         android:id="@+id/button12"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
+                        android:layout_height="135dp"
                         android:background="@android:color/holo_orange_dark"
-                        android:scaleType="fitCenter"
                         android:onClick="btnClick"
-                        app:srcCompat="@drawable/ic_chat_white_48px"
-                        android:text="Button" />
+                        android:scaleType="fitCenter"
+                        android:text="Button"
+                        app:srcCompat="@drawable/ic_chat_white_48px" />
 
                     <TextView
                         android:id="@+id/textView22"
@@ -111,21 +117,25 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="70px"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="30dp"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingLeft="25dp"
+                android:paddingRight="25dp">
 
                 <LinearLayout
                     android:layout_width="400px"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="50px"
-                    android:orientation="vertical">
+                    android:layout_marginRight="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingRight="15dp">
 
                     <ImageButton
                         android:id="@+id/button13"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
+                        android:layout_height="135dp"
                         android:layout_weight="1"
                         android:background="#ffeb02"
                         android:onClick="btnClick"
@@ -147,17 +157,20 @@
                 <LinearLayout
                     android:layout_width="400px"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingLeft="15dp">
 
                     <ImageButton
                         android:id="@+id/button14"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
+                        android:layout_height="135dp"
                         android:background="@color/colorAccent"
-                        android:scaleType="fitXY"
-                        app:srcCompat="@drawable/ic_apps_white_48px"
                         android:onClick="btnClick"
-                        android:text="Button" />
+                        android:paddingLeft="10dp"
+                        android:scaleType="fitXY"
+                        android:text="Button"
+                        app:srcCompat="@drawable/ic_apps_white_48px" />
 
                     <TextView
                         android:id="@+id/textView24"
@@ -173,25 +186,29 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginBottom="70px"
+                android:layout_marginBottom="30dp"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingLeft="25dp"
+                android:paddingRight="25dp">
 
                 <LinearLayout
                     android:layout_width="400px"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="50px"
-                    android:orientation="vertical">
+                    android:layout_marginRight="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingRight="15dp">
 
                     <ImageButton
                         android:id="@+id/button15"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
-                        android:onClick="btnClick"
+                        android:layout_height="135dp"
                         android:background="@color/purple"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_wb_sunny_white_48px"
-                        android:text="Button" />
+                        android:text="Button"
+                        app:srcCompat="@drawable/ic_wb_sunny_white_48px" />
 
                     <TextView
                         android:id="@+id/textView25"
@@ -207,17 +224,19 @@
                 <LinearLayout
                     android:layout_width="400px"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingLeft="15dp">
 
                     <ImageButton
                         android:id="@+id/button16"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
-                        android:onClick="btnClick"
+                        android:layout_height="135dp"
                         android:background="@android:color/holo_green_light"
+                        android:onClick="btnClick"
                         android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_notifications_none_white_48px"
-                        android:text="Button" />
+                        android:text="Button"
+                        app:srcCompat="@drawable/ic_notifications_none_white_48px" />
 
                     <TextView
                         android:id="@+id/textView26"
@@ -234,20 +253,24 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginBottom="70px"
+                android:layout_marginBottom="30dp"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingLeft="25dp"
+                android:paddingRight="25dp">
 
                 <LinearLayout
                     android:layout_width="400px"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="50px"
-                    android:orientation="vertical">
+                    android:layout_marginRight="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingRight="15dp">
 
                     <ImageButton
                         android:id="@+id/button18"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
+                        android:layout_height="135dp"
                         android:background="@android:color/holo_orange_light"
                         android:onClick="btnClick"
                         android:scaleType="centerCrop"
@@ -268,17 +291,19 @@
                 <LinearLayout
                     android:layout_width="400px"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingLeft="15dp">
 
                     <ImageButton
                         android:id="@+id/button19"
                         android:layout_width="match_parent"
-                        android:layout_height="300px"
+                        android:layout_height="135dp"
                         android:background="@color/cyan"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_settings_white_48px"
                         android:onClick="btnClick"
-                        android:text="Button" />
+                        android:scaleType="fitCenter"
+                        android:text="Button"
+                        app:srcCompat="@drawable/ic_settings_white_48px" />
 
                     <TextView
                         android:id="@+id/textView29"
@@ -292,15 +317,6 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="70px"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-
-            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
