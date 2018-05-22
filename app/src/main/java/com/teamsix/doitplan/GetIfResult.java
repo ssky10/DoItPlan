@@ -37,6 +37,7 @@ public class GetIfResult {
         Plan plan;
         for(int i=0; i<plans.size();i++){
             plan = ((Plan)plans.get(i)).clone();
+            Log.e("ifValue",plan.ifValue);
             if(getIfBoolean(plan.ifCode,plan.ifValue,args)){
                 switch (plan.ifCode) {
                     case Plan.IF_CALL:
@@ -59,7 +60,7 @@ public class GetIfResult {
                         plan.resultValue = plan.resultValue.replace("{강수량}",ForecastBraodCastReciever.forecast.getRain()+"mm");
                         break;
                     case Plan.IF_BATTERY:
-                        plan.resultValue = plan.resultValue.replace("{퍼센트}",args[0]);
+                        plan.resultValue = plan.resultValue.replace("{퍼센트}",BetteryReceiver.level+"");
                         break;
                     case Plan.IF_CLIP:
                         plan.resultValue = plan.resultValue.replace("{내용}",args[0]);

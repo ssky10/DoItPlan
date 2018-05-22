@@ -111,10 +111,10 @@ public class NewRecyclerViewFragment extends Fragment {
                 String type = data.getStringExtra("type");
                 Log.e("type", type);
                 if (type.equals("if")) {
-                    newRecyclerViewAdapter.setIfStr(true, Plan.IF_STR[data.getIntExtra("if", 0)]);
+                    newRecyclerViewAdapter.setIfStr(true, data.getIntExtra("if", 0));
                     ifInfo = data;
                 } else if (type.equals("Result")) {
-                    newRecyclerViewAdapter.setResultStr(true, Plan.RESULT_STR[data.getIntExtra("Result", 0)]);
+                    newRecyclerViewAdapter.setResultStr(true, data.getIntExtra("Result", 0));
                     resultInfo = data;
                     AlertDialog.Builder ad = new AlertDialog.Builder(new ContextThemeWrapper(NewRecyclerViewFragment.this.getContext(), R.style.Theme_AppCompat_Dialog));
 

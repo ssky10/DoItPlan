@@ -198,7 +198,9 @@ public class Pop1Activity extends AppCompatActivity {
             intent.putExtra("timedaycloud", cloud.isChecked());
 
         }else if(data==Plan.IF_BATTERY) {
-            intent.putExtra("betterypercent", text1.getEditText().getText().toString());
+            String temp = text2.getEditText().getText().toString();
+            if(temp.equals("")) temp = "0";
+            intent.putExtra("betterypercent", temp);
         }
         setResult(RESULT_OK, intent);
 

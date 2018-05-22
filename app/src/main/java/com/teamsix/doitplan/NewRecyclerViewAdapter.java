@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,20 +89,23 @@ public class NewRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         }
     }
 
-    public void setIfStr(boolean s, String str){
+    public void setIfStr(boolean s, int type){
         if(s){
             TextView textview = (TextView)view.findViewById(R.id.textView2);
-            textview.setText(str);
+            textview.setText(Plan.IF_STR[type]);
             TextView textview1 = (TextView)view.findViewById(R.id.textView7);
             textview1.setTextColor(Color.parseColor("#FF00BCD4"));
             textview1.setClickable(true);
+            Log.e("ifReplace",type+"");
+            contents.get(1).putExtra("ifReplace",Plan.IF_REPLACE[type]);
+            Log.e("ifReplace",Plan.IF_REPLACE[type]);
         }
     }
 
-    public void setResultStr(boolean s, String str){
+    public void setResultStr(boolean s, int type){
         if(s){
             TextView textview = (TextView)view.findViewById(R.id.textView7);
-            textview.setText(str);
+            textview.setText(Plan.RESULT_STR[type]);
         }
     }
 

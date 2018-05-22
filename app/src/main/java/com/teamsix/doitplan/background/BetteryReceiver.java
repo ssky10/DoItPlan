@@ -25,7 +25,7 @@ public class BetteryReceiver extends BroadcastReceiver {
 
         level = newLevel;
 
-        List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_BATTERY),level+"");
+        List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_BATTERY));
         if(list.size()==0) return;
         for(int j=0;j<list.size();j++){
             GetIfResult.doitResult(list.get(j).resultCode,list.get(j).resultValue,context);

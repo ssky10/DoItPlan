@@ -32,7 +32,6 @@ public class Pop2Activity extends AppCompatActivity {
     private TextView txtText;
     private TextInputLayout text1;
     private TextInputLayout text2;
-    private MapView map;
     private LinearLayout sett;
     private CheckBox blue;
     private CheckBox silence;
@@ -49,6 +48,7 @@ public class Pop2Activity extends AppCompatActivity {
     private Switch blueIsOn;
     private Switch silenceIsOn;
     private Switch wifiIsOn;
+    private TextView text;
 
 
     @Override
@@ -74,6 +74,7 @@ public class Pop2Activity extends AppCompatActivity {
         listview = (ListView) findViewById(R.id.list);
         selText = (TextView) findViewById(R.id.tv_sel);
         rg = (RadioGroup)findViewById(R.id.radioGroup1);
+        text = (TextView)findViewById(R.id.textView17);
 
         //데이터 가져오기
         Intent intent = getIntent();
@@ -82,20 +83,20 @@ public class Pop2Activity extends AppCompatActivity {
         planNo = intent.getIntExtra("planno",-1);
 
         if (data == Plan.RESULT_CALL) {
-            txtText.setText("전화를 건다");
+            txtText.setText("전화를 거절한다");
             text1.setVisibility(View.GONE);
             text2.setVisibility(View.GONE);
-
+            text.setVisibility(View.GONE);
         } else if (data == Plan.RESULT_PHONE) {
             txtText.setText("문자를 보낸다");
             text1.setHint("내용");
             text2.setHint("받는 사람");
-
+            text.setText("사용가능 값 : "+intent.getStringExtra("ifReplace"));
         } else if (data == Plan.RESULT_KAKAO) {
             txtText.setText("나에게 보내기를 한다.");
             text1.setHint("내용");
             text2.setVisibility(View.GONE);
-
+            text.setText("사용가능 값 : "+intent.getStringExtra("ifReplace"));
         } else if (data == Plan.RESULT_APP) {
             txtText.setText("특정어플리케이션을 실행한다.");
             getPackageList();
@@ -112,22 +113,23 @@ public class Pop2Activity extends AppCompatActivity {
                     selNum = i;
                 }
             });
-
+            text.setVisibility(View.GONE);
         } else if (data == Plan.RESULT_WEATHER) {
             txtText.setText("날씨를 알려준다.");
             text1.setVisibility(View.GONE);
             text2.setVisibility(View.GONE);
-
+            text.setVisibility(View.GONE);
         } else if (data == Plan.RESULT_ALARM) {
             txtText.setText("알림메세지를 보낸다.");
             text1.setHint("내용");
             text2.setVisibility(View.GONE);
             noti.setVisibility(View.VISIBLE);
+            text.setText("사용가능 값 : "+intent.getStringExtra("ifReplace"));
         } else if (data == Plan.RESULT_NAVER) {
             txtText.setText("naver 검색을 한다.");
             text1.setHint("검색할 내용");
             text2.setVisibility(View.GONE);
-
+            text.setText("사용가능 값 : "+intent.getStringExtra("ifReplace"));
         } else if (data == Plan.RESULT_SETTING) {
             txtText.setText("블루투스, Wifi 등 단말기의 설정을 on, off한다.");
             text1.setVisibility(View.GONE);
@@ -151,6 +153,7 @@ public class Pop2Activity extends AppCompatActivity {
                     wifiIsOn.setClickable(b);
                 }
             });
+            text.setVisibility(View.GONE);
         }
 
         if(type == 2) setData();
@@ -255,7 +258,6 @@ public class Pop2Activity extends AppCompatActivity {
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         mApps = pkgMgr.queryIntentActivities(mainIntent, 0); // 실행가능한 Package만 추출.
 
-        //arrayPkgName = new String[mApps.size()];
         Collections.sort(mApps, new ResolveInfo.DisplayNameComparator(pkgMgr));
 
         for (int i = 0; i < mApps.size(); i++) {

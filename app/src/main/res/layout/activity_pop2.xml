@@ -63,6 +63,14 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <TextView
+            android:id="@+id/textView17"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="사용가능 치환문자"
+            android:textColor="@color/com_kakao_button_text_press" />
+
         <android.support.design.widget.TextInputLayout
             android:id="@+id/text1"
             android:layout_width="match_parent"

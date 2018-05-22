@@ -25,11 +25,13 @@ public class ResultListActivity extends AppCompatActivity {
             case R.id.button12:
                 intent = new Intent(this, Pop2Activity.class);
                 intent.putExtra("Result", Plan.RESULT_PHONE);
+                intent.putExtra("ifReplace",getIntent().getStringExtra("ifReplace"));
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button13:
                 intent = new Intent(this, Pop2Activity.class);
                 intent.putExtra("Result", Plan.RESULT_KAKAO);
+                intent.putExtra("ifReplace",getIntent().getStringExtra("ifReplace"));
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button14:
@@ -45,11 +47,13 @@ public class ResultListActivity extends AppCompatActivity {
             case R.id.button16:
                 intent = new Intent(this, Pop2Activity.class);
                 intent.putExtra("Result", Plan.RESULT_ALARM);
+                intent.putExtra("ifReplace",getIntent().getStringExtra("ifReplace"));
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button18:
                 intent = new Intent(this, Pop2Activity.class);
                 intent.putExtra("Result", Plan.RESULT_NAVER);
+                intent.putExtra("ifReplace",getIntent().getStringExtra("ifReplace"));
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button19:
