@@ -1,5 +1,7 @@
 package com.teamsix.doitplan;
 
+import android.Manifest;
+import android.app.AlarmManager;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -9,14 +11,22 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.github.florent37.materialviewpager.MaterialViewPager;
 import com.github.florent37.materialviewpager.header.HeaderDesign;
+import com.teamsix.doitplan.background.AlarmBraodCastReciever;
+import com.teamsix.doitplan.background.AlarmUtils;
+import com.teamsix.doitplan.background.BetteryReceiver;
+import com.teamsix.doitplan.background.BlockCallReceiver;
 import com.teamsix.doitplan.background.CallStateReceiver;
+import com.teamsix.doitplan.background.ClipboardService;
 import com.teamsix.doitplan.background.Forecast;
+import com.teamsix.doitplan.background.ForecastBraodCastReciever;
+import com.teamsix.doitplan.background.GPStracker;
 import com.teamsix.doitplan.fragment.NewRecyclerViewFragment;
 import com.teamsix.doitplan.fragment.RecyclerViewFragment;
 import com.teamsix.doitplan.fragment.SmallRecyclerViewFragment;
@@ -27,14 +37,17 @@ import java.text.SimpleDateFormat;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.teamsix.doitplan.background.ForecastBraodCastReciever.forecast;
+
 public class MainActivity extends DrawerActivity {
 
     //뷰 연결
     @BindView(R.id.materialViewPager)
     MaterialViewPager mViewPager;//
     NewRecyclerViewFragment newRecyclerViewFragment;
-    BroadcastReceiver receiver = null;
-    Forecast forecast = new Forecast();
+    SmallRecyclerViewFragment smallRecyclerViewFragment;
+    private final BroadcastReceiver mBloackCallReceiver = new BlockCallReceiver();
+    private final BetteryReceiver mBetteryReceiver = new BetteryReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +64,7 @@ public class MainActivity extends DrawerActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
             actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setDisplayShowCustomEnabled(true);
             actionBar.setDisplayUseLogoEnabled(false);
             actionBar.setHomeButtonEnabled(true);
         }
@@ -69,7 +83,8 @@ public class MainActivity extends DrawerActivity {
                         newRecyclerViewFragment = NewRecyclerViewFragment.newInstance();
                         return newRecyclerViewFragment;//새로운Plan
                     case 2:
-                        return SmallRecyclerViewFragment.newInstance();//나만의Plan
+                        smallRecyclerViewFragment = SmallRecyclerViewFragment.newInstance();
+                        return smallRecyclerViewFragment;//나만의Plan
                     default:
                         return RecyclerViewFragment.newInstance();
                 }
@@ -129,40 +144,56 @@ public class MainActivity extends DrawerActivity {
             logo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getApplicationContext(),ApplicationController.getForecast().getSky()+"/"+ApplicationController.getForecast().getTemperature(),Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), ForecastBraodCastReciever.forecast.getSky()+"/"+ForecastBraodCastReciever.forecast.getState()+"/"+ForecastBraodCastReciever.forecast.getTemperature(),Toast.LENGTH_SHORT).show();
                 }
             });
         }
 
+        PermissionUtils.requestPermission(this,123,Manifest.permission.ACCESS_FINE_LOCATION);
 
+        //전화상태 확인 및 변경 서비스
+        registerReceiver(mBloackCallReceiver , new IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED));
 
-        //mViewPager.notifyHeaderChanged();
-        //Toast.makeText(getApplicationContext(), "Yes, the title is clickable", Toast.LENGTH_SHORT).show();
-        //Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-        //startActivity(intent);
-        //forecast.getData(35.154483, 128.098444,nowDate,nowTime);
+        //베터리 상태 체크
+        registerReceiver(mBetteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
-        // 인텐트 필터 설정
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("android.intent.action.PHONE_STATE");
+        //날씨 상태 확인
+        if (!ForecastBraodCastReciever.isLaunched) {
+            AlarmUtils.getInstance().startForecastUpdate(this);
+            if(GPStracker.lastLocation==null)
+                forecast.getNowData(this,35.154483, 128.098444);
+            else
+                forecast.getNowData(this, GPStracker.lastLocation.getLatitude(), GPStracker.lastLocation.getLongitude());
+        }
 
-        // 동적리시버 생성
-        receiver = new CallStateReceiver();
-        // 위에서 설정한 인텐트필터+리시버정보로 리시버 등록
-        registerReceiver(receiver, intentFilter);
-
+        //클립보드 서비스 시작
+        if(!ClipboardService.isLaunched) {
+            Intent mIntent = new Intent(getApplicationContext(), ClipboardService.class);
+            startService(mIntent);
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.e("onActivityResult","MainActivity-start");
+        Log.e("onActivityResult",requestCode+"");
         if(requestCode==1) {
             if (resultCode == RESULT_OK) {
                 newRecyclerViewFragment.onActivityResult(requestCode, resultCode, data);
+                super.onActivityResult(requestCode, resultCode, data);
+            }
+        }else if(requestCode == 1000 || requestCode == 1001){
+            if (resultCode == RESULT_OK) {
+                smallRecyclerViewFragment.onActivityResult(requestCode, resultCode, data);
                 super.onActivityResult(requestCode, resultCode, data);
             }
         }
         Log.e("onActivityResult","MainActivity-end");
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mBloackCallReceiver);
+        unregisterReceiver(mBetteryReceiver);
+    }
 }

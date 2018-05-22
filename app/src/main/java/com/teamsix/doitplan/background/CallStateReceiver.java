@@ -23,8 +23,11 @@ import static android.content.ContentValues.TAG;
  */
 
 public class CallStateReceiver extends BroadcastReceiver {
+    public static boolean isLaunched = false;
+
     @Override
     public void onReceive(final Context context, Intent intent) {
+        isLaunched = true;
         final TelephonyManager telephony;
         Log.e(TAG, "start1!");
         telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -39,10 +42,11 @@ public class CallStateReceiver extends BroadcastReceiver {
                         List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_CALL),incommingNumber);
                         if(list.size()==0) break;
                         for(int i=0;i<list.size();i++){
-                            GetIfResult.doitResult(list.get(i).resultCode,list.get(i).resultValue,context,incommingNumber);
+                            GetIfResult.doitResult(list.get(i).resultCode,list.get(i).resultValue,context);
                         }
                         Log.e("CallStateReceiver",String.valueOf(System.currentTimeMillis()-ApplicationController.getEndcall()));
-                        if(System.currentTimeMillis()-ApplicationController.getEndcall()>5000) break;
+                        if((System.currentTimeMillis()-ApplicationController.getEndcall()>5000)
+                                ||(ApplicationController.getEndcall() == -1)) break;
                         try {
                             Class c = Class.forName(telephony.getClass().getName());
                             Method m = c.getDeclaredMethod("getITelephony");

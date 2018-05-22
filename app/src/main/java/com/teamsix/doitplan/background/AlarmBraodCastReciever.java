@@ -3,12 +3,17 @@ package com.teamsix.doitplan.background;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.teamsix.doitplan.ApplicationController;
+import com.teamsix.doitplan.GetIfResult;
+import com.teamsix.doitplan.Plan;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Locale;
 
 public class AlarmBraodCastReciever extends BroadcastReceiver {
     public static boolean isLaunched = false;
@@ -16,18 +21,22 @@ public class AlarmBraodCastReciever extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.e("AlarmBraodCastReciever","start");
         isLaunched = true;
 
-        //SendNotification.sendNotification(context,"서비스","내용내용내용");
-        if(ApplicationController.getLastKnownLocation()==null)
-            ApplicationController.getForecast().getNowData(35.154483, 128.098444);
-        else
-            ApplicationController.getForecast().getNowData(ApplicationController.getLastKnownLocation().getLatitude(), ApplicationController.getLastKnownLocation().getLongitude());
+        int planNo = intent.getIntExtra("planNo",-1);
+        if(planNo == -1) return;
 
-        AlarmUtils.getInstance().startForecastUpdate(context);
+        Plan plan = ApplicationController.getWorkPlan(planNo);
+        if(plan == null) return;
 
-        // 현재 시간을 화면에 보낸다.
-        //saveTime(context);
+        plan.resultValue = plan.resultValue.replace("{시간}",new SimpleDateFormat("yyyy/MM/dd(E) HH:mm", Locale.KOREAN).format(System.currentTimeMillis()));
+
+        if(plan.resultCode==Plan.RESULT_CALL) ApplicationController.setEndcall(System.currentTimeMillis()+(55*1000));
+        else GetIfResult.doitResult(plan.resultCode,plan.resultValue,context);
+
+        AlarmUtils.getInstance().startAlarmUpdate(context,planNo);
     }
+
 
 }

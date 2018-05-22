@@ -11,6 +11,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -55,6 +56,7 @@ public class DrawerActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
             actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setDisplayShowCustomEnabled(true);
             actionBar.setDisplayUseLogoEnabled(false);
             actionBar.setHomeButtonEnabled(true);
         }
@@ -99,7 +101,23 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.tool_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        int select = item.getItemId();
+
+        switch (select){
+            case R.id.app_bar_search:
+                Intent intent = new Intent(this,Searchctivity.class);
+                startActivity(intent);
+                return true;
+        }
+
         return mDrawerToggle.onOptionsItemSelected(item) ||
                 super.onOptionsItemSelected(item);
     }
@@ -125,4 +143,6 @@ public class DrawerActivity extends AppCompatActivity {
         startActivity(loginIntent); //전환 실행
         finish(); //엑티비티 종료
     }
+
+
 }

@@ -15,10 +15,12 @@ import com.teamsix.doitplan.Plan;
 import java.util.List;
 
 public class ClipboardService extends Service implements ClipboardManager.OnPrimaryClipChangedListener {
+    public static boolean isLaunched = false;
     ClipboardManager mManager;
 
     @Override
     public void onCreate() {
+        isLaunched = true;
         super.onCreate();
         mManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         // 리스너 등록
@@ -28,6 +30,7 @@ public class ClipboardService extends Service implements ClipboardManager.OnPrim
 
     @Override
     public void onDestroy() {
+        isLaunched = false;
         super.onDestroy();
         // 리스너 해제
         mManager.removePrimaryClipChangedListener(this);

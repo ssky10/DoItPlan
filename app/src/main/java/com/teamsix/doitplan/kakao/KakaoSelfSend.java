@@ -1,5 +1,7 @@
 package com.teamsix.doitplan.kakao;
 
+import android.util.Log;
+
 import com.kakao.kakaotalk.callback.TalkResponseCallback;
 import com.kakao.kakaotalk.v2.KakaoTalkService;
 import com.kakao.network.ErrorResult;
@@ -13,6 +15,7 @@ import java.util.Map;
 public class KakaoSelfSend {
 
     public void requestSendMemo(String msg) {
+        Log.e("KakaoSelfSend","start");
         Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("''yy년 MM월 dd일 E요일");
         KakaoTalkMessageBuilder builder = new KakaoTalkMessageBuilder();

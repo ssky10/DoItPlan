@@ -3,11 +3,15 @@ package com.teamsix.doitplan;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.net.Uri;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.ToggleButton;
 
+import com.teamsix.doitplan.background.AlarmBraodCastReciever;
+import com.teamsix.doitplan.background.BetteryReceiver;
+import com.teamsix.doitplan.background.ForecastBraodCastReciever;
 import com.teamsix.doitplan.background.SendNotification;
 import com.teamsix.doitplan.background.ToggleSetting;
 import com.teamsix.doitplan.kakao.KakaoSelfSend;
@@ -16,12 +20,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.Date;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.teamsix.doitplan.background.SendNotification.sendNotification;
 
 public class GetIfResult {
     public static List getBoolean(List plans, String... args){
@@ -43,11 +51,12 @@ public class GetIfResult {
                         plan.resultValue = plan.resultValue.replace("{내용}",args[1]);
                         break;
                     case Plan.IF_TIME:
+
                         break;
                     case Plan.IF_WEATHER:
-                        plan.resultValue = plan.resultValue.replace("{하늘상태}",ApplicationController.getForecast().getSky());
-                        plan.resultValue = plan.resultValue.replace("{기온}",ApplicationController.getForecast().getTemperature()+"℃");
-                        plan.resultValue = plan.resultValue.replace("{강수량}",ApplicationController.getForecast().getRain()+"mm");
+                        plan.resultValue = plan.resultValue.replace("{하늘상태}", ForecastBraodCastReciever.forecast.getSky());
+                        plan.resultValue = plan.resultValue.replace("{기온}",ForecastBraodCastReciever.forecast.getTemperature()+"℃");
+                        plan.resultValue = plan.resultValue.replace("{강수량}",ForecastBraodCastReciever.forecast.getRain()+"mm");
                         break;
                     case Plan.IF_BATTERY:
                         plan.resultValue = plan.resultValue.replace("{퍼센트}",args[0]);
@@ -113,14 +122,31 @@ public class GetIfResult {
                     }
                     return false;
                 case Plan.IF_WEATHER:
-                    break;
+                    if(values.getBoolean("timedaysunny"))
+                        if(ForecastBraodCastReciever.forecast.isSunny())
+                            return true;
+                    if(values.getBoolean("timedaycloud"))
+                        if(ForecastBraodCastReciever.forecast.isCloud())
+                            return true;
+                    if(values.getBoolean("timedayrain"))
+                        if(!ForecastBraodCastReciever.forecast.isRain())
+                            return true;
+                    return false;
                 case Plan.IF_BATTERY:
-                    break;
+                    return BetteryReceiver.level <= Integer.valueOf(values.getString("betterypercent"));
                 case Plan.IF_CLIP:
                     long num = System.currentTimeMillis() - ApplicationController.getClipChangeTime();
                     return num < 5000;
                 case Plan.IF_LOC:
-                    break;
+                    Location loc1 = new Location("");
+                    loc1.setLongitude(values.getDouble("lng"));
+                    loc1.setLatitude(values.getDouble("lat"));
+
+                    Location loc2 = new Location("");
+                    loc2.setLongitude(Double.valueOf(args[1]));
+                    loc2.setLatitude(Double.valueOf(args[0]));
+                    Log.e("Loc",loc1.distanceTo(loc2)+"");
+                    return loc1.distanceTo(loc2) < 500;
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -128,23 +154,14 @@ public class GetIfResult {
         return false;
     }
 
-    /**
-     * Plan.RESULT_PHONE : 추가값 없음
-     * Plan.RESULT_KAKAO : 추가값 없음
-     * Plan.RESULT_APP : Service
-     * Plan.RESULT_WEATHER : Context
-     * Plan.RESULT_ALARM : Context
-     * Plan.RESULT_NAVER : Service
-     * Plan.RESULT_SETTING : Context
-     * */
-    public static void doitResult(int code, String value, Context context, String... args){
+    public static void doitResult(int code, String value, Context context, int... args){
         try {
             JSONObject values = new JSONObject(value);
 
             switch (code) {
                 case Plan.RESULT_CALL:
-
-                    ApplicationController.setEndcall(System.currentTimeMillis());
+                    if(args[0]==1) ApplicationController.setEndcall(-1);
+                    else ApplicationController.setEndcall(System.currentTimeMillis());
                     break;
                 case Plan.RESULT_PHONE:
                     Log.e("doitResult",values.getString("phonepeople"));
@@ -161,24 +178,74 @@ public class GetIfResult {
                     context.startActivity(launchIntent);
                     break;
                 case Plan.RESULT_WEATHER:
-                    SendNotification.sendNotification(context,"현재 날씨","날씨 정보");
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("하늘 : ");
+                    sb.append(ForecastBraodCastReciever.forecast.getSky());
+                    sb.append("비/눈 : ");
+                    sb.append(ForecastBraodCastReciever.forecast.getRain());
+                    sb.append("기온 : ");
+                    sb.append(ForecastBraodCastReciever.forecast.getHumidity()+"℃");
+                    sendNotification(context,"현재 날씨",sb.toString());
                     break;
                 case Plan.RESULT_ALARM:
-                    new ConnectServer.PuchNotificationTask("Plan명",values.getString("alarmstring")).execute();
+                    Boolean isServer = values.getBoolean("serveralarm");
+                    if(isServer)
+                        new ConnectServer.PuchNotificationTask("Plan명",values.getString("alarmstring")).execute();
+                    else
+                        sendNotification(context,"Plan명",values.getString("alarmstring"));
                     break;
                 case Plan.RESULT_NAVER:
                     SendNotification.sendNaverNotification(context,"네이버 검색",values.getString("naverstring"));
                     break;
                 case Plan.RESULT_SETTING:
-                    if(values.getBoolean("setblue")) ToggleSetting.onBluetooth(true);
-                    else ToggleSetting.onBluetooth(false);
-                    if(values.getBoolean("setmobile")) ToggleSetting.onWifi(true,context);
-                    else ToggleSetting.onWifi(true,context);
+                    if(values.getBoolean("setblue")) ToggleSetting.onBluetooth(values.getBoolean("isBlueOn"));
+                    if(values.getBoolean("setsilence")) ToggleSetting.onSilence(values.getBoolean("isSilenceOn"),context);
+                    if(values.getBoolean("setwifi")) ToggleSetting.onWifi(values.getBoolean("isWifiOn"),context);
                     break;
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public static long getNextDate(long now, String value){
+        long ONE_DAY = 24*60*60*1000;
+        JSONObject values = null;
+        try {
+            values = new JSONObject(value);
+            SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy/MM/dd ");
+            Date date = new Date(now);
+
+            // nowDate 변수에 값을 저장한다.
+            String nowDate = sdfNow.format(date);
+            String nextDate = nowDate + values.getString("timeclock");
+            sdfNow = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+            nowDate = sdfNow.format(date);
+
+
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            int select = cal.get(Calendar.DAY_OF_WEEK);
+
+            String[] jsonstr = {"timedaysun","timedaymon","timedaytue","timedaywed","timedaythu","timedayfri","timedaysat"};
+
+            if(values.getBoolean(jsonstr[select-1])){
+                if(sdfNow.parse(nextDate).getTime()>sdfNow.parse(nowDate).getTime()){
+                    return sdfNow.parse(nextDate).getTime();
+                }
+            }
+            for(int i=0;i<7;i++){
+                if(values.getBoolean(jsonstr[(select+i)%7])){
+                    return sdfNow.parse(nextDate).getTime()+(ONE_DAY*i);
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
 

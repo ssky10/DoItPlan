@@ -18,6 +18,7 @@ import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.MainActivity;
 import com.teamsix.doitplan.Plan;
 import com.teamsix.doitplan.R;
+import com.teamsix.doitplan.background.AlarmUtils;
 import com.teamsix.doitplan.background.SendNotification;
 
 import org.json.JSONException;
@@ -53,7 +54,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     plan.likes = planJson.getInt("likes_num");
                     plan.setIsWorkFormInt(1);
                     ApplicationController.writePlanDB(plan);
-                    SendNotification.sendNotification(this,"새로운 Plan 추가",remoteMessage.getData().get("title")+"이 추가되었습니다.");
+                    SendNotification.sendNotification(this,"새로운 Plan 추가",remoteMessage.getData().get("title")+"가 추가되었습니다.");
+                    if(plan.ifCode == Plan.IF_TIME){
+                        AlarmUtils.getInstance().startAlarmUpdate(getApplicationContext(),plan.planNo);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }else if(remoteMessage.getData().get("type").equals("delplan")){
+                JSONObject planJson = null;
+                try {
+                    planJson = new JSONObject(remoteMessage.getData().get("message"));
+                    ApplicationController.deletePlanDB(planJson.getInt("plan_no"));
+                    SendNotification.sendNotification(this,"Plan 삭제",remoteMessage.getData().get("title")+"가 삭제되었습니다.");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

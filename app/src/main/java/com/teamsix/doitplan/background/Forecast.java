@@ -1,8 +1,12 @@
 package com.teamsix.doitplan.background;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 
+import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.ConnectServer;
+import com.teamsix.doitplan.GetIfResult;
+import com.teamsix.doitplan.Plan;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,6 +14,7 @@ import org.json.JSONObject;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 public class Forecast {
     private String date;
@@ -24,6 +29,8 @@ public class Forecast {
     private int LGT;
     private int VEC;
     private int WSD;
+    private int oldSky = 0;
+    private int oldState = -1;
 
     public int getTemperature(){
         return T1H;
@@ -41,6 +48,24 @@ public class Forecast {
             case 4 : return "흐림";
             default: return "값없음";
         }
+    }
+
+    public boolean isSunny(){
+        if(SKY == oldSky) return false;
+        if(SKY == 1) return true;
+        return false;
+    }
+
+    public boolean isCloud(){
+        if(SKY==oldSky) return false;
+        if(SKY == 4) return true;
+        return false;
+    }
+
+    public boolean isRain(){
+        if(PTY == oldState) return false;
+        if(PTY == 0) return false;
+        return true;
     }
 
     public int getHumidity(){
@@ -63,7 +88,7 @@ public class Forecast {
     }
 
 
-    public void getNowData(double lat, double lon){
+    public void getNowData(Context context, double lat, double lon){
         long now = System.currentTimeMillis();
         // 현재시간을 date 변수에 저장한다.
         Date date = new Date(now);
@@ -82,13 +107,14 @@ public class Forecast {
         sdfNow = new SimpleDateFormat("HH00");
         nowTime = sdfNow.format(date);
 
-        this.getData(lat,lon,nowDate,nowTime);
+        this.getData(context, lat,lon,nowDate,nowTime);
     }
 
 
 
-    public void getData(double lat, double lon, String date, String time){
+    public void getData(final Context context, double lat, double lon, String date, String time){
         this.lat = lat; this.lon = lon; this.date = date; this.time = time;
+        oldSky = SKY; oldState = PTY;
         @SuppressLint("StaticFieldLeak")
         ConnectServer.GetForecastTask task = new ConnectServer.GetForecastTask(lat,lon,date,time){
             @Override
@@ -120,6 +146,12 @@ public class Forecast {
                         }else if(category.equals("WSD")){
                             WSD = itme.getInt("obsrValue");
                         }
+                    }
+
+                    List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_WEATHER),getSky(),getState(),getHumidity()+"");
+                    if(list.size()==0) return;
+                    for(int j=0;j<list.size();j++){
+                        GetIfResult.doitResult(list.get(j).resultCode,list.get(j).resultValue,context);
                     }
 
                 } catch (JSONException e) {

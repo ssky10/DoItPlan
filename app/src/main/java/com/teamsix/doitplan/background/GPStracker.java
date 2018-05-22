@@ -12,8 +12,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.teamsix.doitplan.ApplicationController;
+import com.teamsix.doitplan.GetIfResult;
+import com.teamsix.doitplan.Plan;
+
+import java.util.List;
 
 public class GPStracker implements LocationListener {
+    public static Location lastLocation = null;
     Context context;
 
     public GPStracker(Context c) {
@@ -32,7 +37,7 @@ public class GPStracker implements LocationListener {
         LocationManager lm = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
         boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if(isGPSEnabled){
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,6000,10,this);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,6000,100,this);
             Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             return l;
 
@@ -45,7 +50,12 @@ public class GPStracker implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         Log.e("onLocationChanged",location.getLatitude()+"/"+location.getLongitude());
-        ApplicationController.setLastKnownLocation(location);
+        lastLocation = location;
+        List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_LOC),location.getLatitude()+"",location.getLongitude()+"");
+        if(list.size()==0) return;
+        for(int j=0;j<list.size();j++){
+            GetIfResult.doitResult(list.get(j).resultCode,list.get(j).resultValue,context);
+        }
     }
 
     @Override

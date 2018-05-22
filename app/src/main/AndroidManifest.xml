@@ -7,19 +7,25 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.SEND_SMS"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
 
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
     <application
         android:name=".ApplicationController"
@@ -29,7 +35,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".MainActivity" />
         <activity android:name=".IfListActivity" />
         <activity android:name=".ResultListActivity" />
@@ -53,6 +58,11 @@
             android:name=".RegistActivity"
             android:label="회원가입"
             android:theme="@style/SingUpTheme" />
+
+        <!--검색화면-->
+        <activity android:name=".Searchctivity"
+            android:label="검색"
+            android:theme="@style/SingUpTheme"/>
 
         <!-- 페이스북 로그인 화면 -->
         <activity
@@ -86,7 +96,6 @@
         <activity
             android:name=".Pop2Activity"
             android:theme="@style/Theme.DialogActivity" />
-
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
@@ -98,13 +107,14 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+                <action android:name="BUTTON_CLICK" />
+                <action android:name="andriod.action.WIDGET_MAKE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_provider" />
         </receiver>
-
         <receiver
             android:name=".background.MyReceiver"
             android:enabled="true"
@@ -113,12 +123,38 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".background.AlarmBraodCastReciever"
+        <receiver
+            android:name=".background.AlarmBraodCastReciever"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.teamsix.doitplan.ALARM_START" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".background.ForecastBraodCastReciever"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.teamsix.doitplan.FORECAST_START" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".widget.WidgetService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.teamsix.doitplan.BUTTON_CLICK" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".background.BlockCallReceiver">
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.PHONE_STATE"></action>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".background.BetteryReceiver">
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.ACTION_BATTERY_CHANGED"></action>
             </intent-filter>
         </receiver>
 
@@ -141,12 +177,10 @@
             android:name=".background.KakaoNotificationListenerService"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService"/>
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-
-        <service android:name=".background.ClipboardService"/>
-
+        <service android:name=".background.ClipboardService" />
 
         <!-- 메타 데이터 부분 시작 -->
         <meta-data
@@ -171,6 +205,8 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
         <!-- 메타 데이터 부분 끝 -->
+
+
     </application>
 
 </manifest>

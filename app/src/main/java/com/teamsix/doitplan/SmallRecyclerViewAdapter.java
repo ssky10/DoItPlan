@@ -1,6 +1,8 @@
 package com.teamsix.doitplan;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
@@ -57,7 +59,7 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
      * 각각의 리스트를 생성
      */
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, final int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
         View view = null;
 
         view = LayoutInflater.from(parent.getContext())
@@ -67,6 +69,7 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
         Switch swWork = (Switch) view.findViewById(R.id.switch1);
         final ImageButton btnShare = (ImageButton)view.findViewById(R.id.sbutton2);
         final ImageButton btnModify = (ImageButton)view.findViewById(R.id.sbutton3);
+        final ImageButton btnDelete = (ImageButton)view.findViewById(R.id.sbutton4);
 
         textview.setText(contents.get(viewType).title);
 
@@ -102,11 +105,12 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
                         .add("plan_ID",String.valueOf(contents.get(viewType).planNo))
                         .build(),"shareToggle.php"){
                     @Override
-                    protected void onPostExecute(JSONObject result) {
-                        Log.e("shareToggle",result.toString());
+                    protected void onPostExecute(String result) {
+                        Log.e("shareToggle",result);
                         super.onPostExecute(result);
                         try {
-                            if(result.getBoolean("result")){
+                            JSONObject jsonObject = new JSONObject(result);
+                            if(jsonObject.getBoolean("result")){
                                 contents.get(viewType).isShare = true;
                                 btnShare.setColorFilter(Color.parseColor("#4267b2"));
                             }else{
@@ -118,6 +122,51 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
                         }
                     }
                 }.execute();
+            }
+        });
+
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("StaticFieldLeak")
+            @Override
+            public void onClick(View view) {
+                new ConnectServer.ConnectServerTask(new FormBody.Builder()
+                        .add("email", ApplicationController.getEmailId())
+                        .add("plan_ID",String.valueOf(contents.get(viewType).planNo))
+                        .add("msg",contents.get(viewType).title)
+                        .build(),"deletePlan.php"){
+                    @Override
+                    protected void onPostExecute(String result) {
+                        Log.e("deletePlan",result);
+                        super.onPostExecute(result);
+                        try {
+                            JSONObject jsonObject = new JSONObject(result);
+                            if(jsonObject.getBoolean("result")){
+                                contents.remove(viewType);
+                                notifyItemRemoved(viewType);
+                            }else{
+
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.execute();
+            }
+        });
+
+        btnModify.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent;
+                if(contents.get(viewType).ifCode == Plan.IF_LOC)
+                    intent = new Intent(parent.getContext(),MapsActivity.class);
+                else
+                    intent = new Intent(parent.getContext(),Pop1Activity.class);
+                intent.putExtra("if",contents.get(viewType).ifCode);
+                intent.putExtra("type",1);
+                intent.putExtra("planno",contents.get(viewType).planNo);
+                intent.putExtras(contents.get(viewType).getIfIntent());
+                ((Activity)parent.getContext()).startActivityForResult(intent,1000); //프래그먼트 상에서 인텐트 이동
             }
         });
 
@@ -138,4 +187,5 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
                 break;
         }
     }//plan 0,1,2,...숫자
+
 }

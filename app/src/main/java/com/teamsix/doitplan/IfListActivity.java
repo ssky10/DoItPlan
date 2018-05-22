@@ -61,10 +61,6 @@ public class IfListActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button8:
-                if(ApplicationController.getClipboardService()==null) {
-                    Intent mIntent=  new Intent(getApplicationContext(), ClipboardService.class);
-                    startService(mIntent);
-                }
                 intent = new Intent();
                 intent.putExtra("if", Plan.IF_CLIP);
                 intent.putExtra("type","if");
@@ -73,10 +69,11 @@ public class IfListActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.button9:
-                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},123);
-                intent = new Intent(this, MapsActivity.class);
-                intent.putExtra("if", Plan.IF_LOC);
-                startActivityForResult(intent, 1);
+                if(PermissionUtils.requestPermission(this,123,Manifest.permission.ACCESS_FINE_LOCATION)){
+                    intent = new Intent(this, MapsActivity.class);
+                    intent.putExtra("if", Plan.IF_LOC);
+                    startActivityForResult(intent, 1);
+                }
                 break;
         }
     }

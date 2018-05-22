@@ -17,11 +17,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.google.android.gms.common.internal.Constants;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.teamsix.doitplan.background.AlarmBraodCastReciever;
 import com.teamsix.doitplan.background.AlarmUtils;
+import com.teamsix.doitplan.background.ForecastBraodCastReciever;
+import com.teamsix.doitplan.background.GPStracker;
+
+import static com.teamsix.doitplan.background.ForecastBraodCastReciever.forecast;
+
 
 public class Pop1Activity extends AppCompatActivity {
 
@@ -40,8 +41,9 @@ public class Pop1Activity extends AppCompatActivity {
     private CheckBox sat;
     private CheckBox sunny;
     private CheckBox rain;
-    private CheckBox snow;
+    private CheckBox cloud;
     int data;
+    int planNo;
 
 
     @Override
@@ -67,20 +69,21 @@ public class Pop1Activity extends AppCompatActivity {
         fri = (CheckBox)findViewById(R.id.checkBox5);
         sat = (CheckBox)findViewById(R.id.checkBox6);
         sunny = (CheckBox)findViewById(R.id.checkBox7);
-        rain = (CheckBox)findViewById(R.id.checkBox8);
-        snow = (CheckBox)findViewById(R.id.checkBox9);
+        rain = (CheckBox)findViewById(R.id.checkBox9);
+        cloud = (CheckBox)findViewById(R.id.checkBox8);
 
         time.setVisibility(View.GONE);
 
         //데이터 가져오기
         Intent intent = getIntent();
         data = intent.getIntExtra("if",1);
+        int type = intent.getIntExtra("type", 0);
+        planNo = intent.getIntExtra("planno",-1);
 
         if(data==Plan.IF_CALL) {
             txtText.setText("전화가 왔을 때");
             text1.setVisibility(View.GONE);
             text2.setHint("번호");
-
 
         }else if(data==Plan.IF_PHONE) {
             txtText.setText("문자가 왔을 때");
@@ -106,17 +109,55 @@ public class Pop1Activity extends AppCompatActivity {
             text1.setVisibility(View.GONE);
             text2.setVisibility(View.GONE);
             weat.setVisibility(View.VISIBLE);
-            if (!AlarmBraodCastReciever.isLaunched) {
-                ApplicationController.setAlarmUtils(AlarmUtils.getInstance());
-                ApplicationController.getAlarmUtils().startForecastUpdate(this);
-                ApplicationController.getForecast().getNowData(35.154483, 128.098444);
-            }
 
         }else if(data==Plan.IF_BATTERY) {
             txtText.setText("배터리가 일정수준 이하가 되었을 때");
-            text1.setHint("퍼센트");
-            text2.setVisibility(View.GONE);
+            text2.setHint("퍼센트");
+            text1.setVisibility(View.GONE);
 
+        }
+
+        if(type == 1) setData();
+    }
+
+    private void setData(){
+        Log.e("type1",String.valueOf(data));
+        Intent intent = getIntent();
+
+        if(data==Plan.IF_CALL) {
+            text2.getEditText().setText(intent.getStringExtra("callnum"));
+        }else if(data==Plan.IF_PHONE) {
+            text1.getEditText().setText(intent.getStringExtra("phonestring"));
+            text2.getEditText().setText(intent.getStringExtra("phonenum"));
+        }else if(data==Plan.IF_KAKAO) {
+            text1.getEditText().setText(intent.getStringExtra("kakaostring"));
+            text2.getEditText().setText(intent.getStringExtra("kakaopeople"));
+
+        }else if(data==Plan.IF_TIME) {
+            String[] spl = intent.getStringExtra("timeclock").split(":");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                time.setHour(Integer.valueOf(spl[0]));
+                time.setMinute(Integer.valueOf(spl[1]));
+            }else{
+                time.setCurrentHour(Integer.valueOf(spl[0]));
+                time.setCurrentMinute(Integer.valueOf(spl[1]));
+            }
+
+            sun.setChecked(intent.getBooleanExtra("timedaysun",false));
+            mon.setChecked(intent.getBooleanExtra("timedaymon",false));
+            tue.setChecked(intent.getBooleanExtra("timedaytue",false));
+            wed.setChecked(intent.getBooleanExtra("timedaywed",false));
+            thu.setChecked(intent.getBooleanExtra("timedaythu",false));
+            fri.setChecked(intent.getBooleanExtra("timedayfri",false));
+            sat.setChecked(intent.getBooleanExtra("timedaysat",false));
+
+        }else if(data==Plan.IF_WEATHER) {
+            sunny.setChecked(intent.getBooleanExtra("timedaysunny",false));
+            rain.setChecked(intent.getBooleanExtra("timedayrain",false));
+            cloud.setChecked(intent.getBooleanExtra("timedaycloud",false));
+        }else if(data==Plan.IF_BATTERY) {
+            text2.getEditText().setText(intent.getStringExtra("betterypercent"));
         }
     }
 
@@ -127,25 +168,22 @@ public class Pop1Activity extends AppCompatActivity {
         Log.e("type1",String.valueOf(data));
         Intent intent = new Intent();
         intent.putExtra("if", data);
-
+        if(planNo != -1)
+            intent.putExtra("planno",planNo);
         if(data==Plan.IF_CALL) {
             intent.putExtra("callnum", text2.getEditText().getText().toString());
-
         }else if(data==Plan.IF_PHONE) {
             intent.putExtra("phonestring", text1.getEditText().getText().toString());
             intent.putExtra("phonenum", text2.getEditText().getText().toString());
-
         }else if(data==Plan.IF_KAKAO) {
             intent.putExtra("kakaostring", text1.getEditText().getText().toString());
             intent.putExtra("kakaopeople", text2.getEditText().getText().toString());
-
         }else if(data==Plan.IF_TIME) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 intent.putExtra("timeclock", time.getHour()+":"+time.getMinute());
             }else{
                 intent.putExtra("timeclock", time.getCurrentHour()+":"+time.getCurrentMinute());
             }
-
             intent.putExtra("timedaysun", sun.isChecked());
             intent.putExtra("timedaymon", mon.isChecked());
             intent.putExtra("timedaytue", tue.isChecked());
@@ -157,11 +195,10 @@ public class Pop1Activity extends AppCompatActivity {
         }else if(data==Plan.IF_WEATHER) {
             intent.putExtra("timedaysunny", sunny.isChecked());
             intent.putExtra("timedayrain", rain.isChecked());
-            intent.putExtra("timedaysnow", snow.isChecked());
+            intent.putExtra("timedaycloud", cloud.isChecked());
 
         }else if(data==Plan.IF_BATTERY) {
             intent.putExtra("betterypercent", text1.getEditText().getText().toString());
-
         }
         setResult(RESULT_OK, intent);
 

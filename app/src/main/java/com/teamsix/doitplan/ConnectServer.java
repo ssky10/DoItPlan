@@ -44,6 +44,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.teamsix.doitplan.Plan.ifIntentToSting;
+import static com.teamsix.doitplan.Plan.resultIntentToSting;
 import static java.lang.Math.asin;
 
 public class ConnectServer {
@@ -143,136 +145,6 @@ public class ConnectServer {
 
             // TODO: register the new account here.
             return result;
-        }
-    }
-
-    /**
-     * 중복확인 백그라운드 작업
-     */
-    public static class UserIdCheckTask extends AsyncTask<Void, Void, Boolean> {
-        private final String mEmail;
-
-        UserIdCheckTask(String email) {
-            mEmail = email;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            Boolean result = false;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/checkId.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //Post방식으로 넘길 값들을 각각 지정을 해주어야 한다.
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(mEmail, "UTF-8")));
-
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf);
-                }
-
-                Log.e("response", str.toString());
-
-                JSONObject jObject = new JSONObject(str.toString());
-                result = jObject.getBoolean("result");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return result;
-        }
-    }
-
-    /**
-     * 로그인 연결 확인 부분
-     */
-    public static class UserLoginTask extends AsyncTask<Void, Void, JSONObject> {
-
-        protected final String mEmail;
-        private final String mPassword;
-        protected JSONObject jObject;
-
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected JSONObject doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            Boolean result = false;
-            JSONObject jObject = null;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/userCheck.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //Post방식으로 넘길 값들을 각각 지정을 해주어야 한다.
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(mEmail, "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "password", URLDecoder.decode(mPassword, "UTF-8")));
-
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf); //반환값 문자열로 변경
-                }
-
-                Log.e("response", str.toString());
-
-                jObject = new JSONObject(str.toString()); //JSON형태의 반환값 JSON으로 변경
-                result = jObject.getBoolean("result"); //result값 추출 및 저장
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return jObject; //결과 값 반환
         }
     }
 
@@ -462,178 +334,6 @@ public class ConnectServer {
         }
     }
 
-    /**
-     * 새로만든 plan 저장
-     */
-    public static class newPlanTask extends AsyncTask<Void, Void, Boolean> {
-        private final int ifCode;
-        private final int resultCode;
-        private final String msg;
-        private Map<String, Object> ifValue = new HashMap();
-        private Map<String, Object> resultValue = new HashMap();
-
-
-        public ProgressDialog asyncDialog;
-
-
-        public newPlanTask(Intent ifValue, Intent resultValue, String msg, Context context) {
-            asyncDialog = new ProgressDialog(context);
-            this.msg = msg;
-            ifCode = ifValue.getIntExtra("if", 0);
-            switch (ifCode) {
-                case Plan.IF_CALL:
-                    this.ifValue.put("callnum", ifValue.getStringExtra("callnum"));
-                    break;
-                case Plan.IF_PHONE:
-                    this.ifValue.put("phonestring", ifValue.getStringExtra("phonestring"));
-                    this.ifValue.put("phonenum", ifValue.getStringExtra("phonenum"));
-                    break;
-                case Plan.IF_KAKAO:
-                    this.ifValue.put("kakaostring", ifValue.getStringExtra("kakaostring"));
-                    this.ifValue.put("kakaopeople", ifValue.getStringExtra("kakaopeople"));
-                    break;
-                case Plan.IF_TIME:
-                    this.ifValue.put("timeclock", ifValue.getStringExtra("timeclock"));
-                    this.ifValue.put("timedaysun", ifValue.getBooleanExtra("timedaysun", false));
-                    this.ifValue.put("timedaymon", ifValue.getBooleanExtra("timedaymon", false));
-                    this.ifValue.put("timedaytue", ifValue.getBooleanExtra("timedaytue", false));
-                    this.ifValue.put("timedaywed", ifValue.getBooleanExtra("timedaywed", false));
-                    this.ifValue.put("timedaythu", ifValue.getBooleanExtra("timedaythu", false));
-                    this.ifValue.put("timedayfri", ifValue.getBooleanExtra("timedayfri", false));
-                    this.ifValue.put("timedaysat", ifValue.getBooleanExtra("timedaysat", false));
-                    break;
-                case Plan.IF_WEATHER:
-                    this.ifValue.put("timedaysunny", ifValue.getBooleanExtra("timedaysunny", false));
-                    this.ifValue.put("timedayrain", ifValue.getBooleanExtra("timedayrain", false));
-                    this.ifValue.put("timedaysnow", ifValue.getBooleanExtra("timedaysnow", false));
-                    break;
-                case Plan.IF_BATTERY:
-                    this.ifValue.put("betterypercent", ifValue.getStringExtra("betterypercent"));
-                    break;
-                case Plan.IF_CLIP:
-                    this.ifValue.put("callnum", ifValue.getStringExtra("callnum"));
-                    break;
-                case Plan.IF_LOC:
-                    this.ifValue.put("lat", ifValue.getDoubleArrayExtra("latlng")[0]);
-                    this.ifValue.put("lng", ifValue.getDoubleArrayExtra("latlng")[1]);
-                    break;
-            }
-            resultCode = resultValue.getIntExtra("Result", 0);
-            switch (resultCode) {
-                case Plan.RESULT_CALL:
-                    break;
-                case Plan.RESULT_PHONE:
-                    this.resultValue.put("phonetext", resultValue.getStringExtra("phonetext"));
-                    this.resultValue.put("phonepeople", resultValue.getStringExtra("phonepeople"));
-                    break;
-                case Plan.RESULT_KAKAO:
-                    this.resultValue.put("kakaostring", resultValue.getStringExtra("kakaostring"));
-                    break;
-                case Plan.RESULT_APP:
-                    this.resultValue.put("appPackage", resultValue.getStringExtra("appPackage"));
-                    this.resultValue.put("appName", resultValue.getStringExtra("appName"));
-                    break;
-                case Plan.RESULT_WEATHER:
-                    break;
-                case Plan.RESULT_ALARM:
-                    this.resultValue.put("alarmstring", resultValue.getStringExtra("alarmstring"));
-                    break;
-                case Plan.RESULT_NAVER:
-                    this.resultValue.put("naverstring", resultValue.getStringExtra("naverstring"));
-                    break;
-                case Plan.RESULT_SETTING:
-                    this.resultValue.put("setblue", resultValue.getBooleanExtra("setblue",false));
-                    this.resultValue.put("setmobile", resultValue.getBooleanExtra("setmobile",false));
-                    break;
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            asyncDialog.setCanceledOnTouchOutside(false);
-            asyncDialog.setCancelable(false);
-            asyncDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                }
-            });
-            asyncDialog.setMessage("Plan등록중입니다...");
-
-            // show dialog
-            asyncDialog.show();
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            Boolean result = false;
-            InputStreamReader in = null;
-            BufferedReader br = null;
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://doitplan.ml/dip/newPlan.php");
-            ArrayList<NameValuePair> nameValues =
-                    new ArrayList<NameValuePair>();
-            try {
-                //Post방식으로 넘길 값들을 각각 지정을 해주어야 한다.
-                nameValues.add(new BasicNameValuePair(
-                        "email", URLDecoder.decode(ApplicationController.getEmailId(), "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "ifCode", URLDecoder.decode(String.valueOf(ifCode), "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "resultCode", URLDecoder.decode(String.valueOf(resultCode), "UTF-8")));
-                JSONObject json = new JSONObject();
-                Gson gson = new Gson();
-
-                json.put("ifValue", gson.toJson(ifValue));
-                json.put("resultValue", gson.toJson(resultValue));
-                nameValues.add(new BasicNameValuePair(
-                        "value", URLDecoder.decode(json.toString(), "UTF-8")));
-                nameValues.add(new BasicNameValuePair(
-                        "msg", URLDecoder.decode(msg, "UTF-8")));
-
-                //HttpPost에 넘길 값을들 Set해주기
-                post.setEntity(
-                        new UrlEncodedFormEntity(
-                                nameValues, "UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                Log.e("Insert Log", ex.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                //설정한 URL을 실행시키기
-                HttpResponse response = client.execute(post);
-                //통신 값을 받은 Log 생성. (200이 나오는지 확인할 것~) 200이 나오면 통신이 잘 되었다는 뜻!
-                Log.i("Insert Log", "response.getStatusCode:" + response.getStatusLine().getStatusCode());
-                HttpEntity resEntity = response.getEntity();
-                StringBuilder str = new StringBuilder();
-                in = new InputStreamReader(resEntity.getContent());
-                br = new BufferedReader(in);
-                String buf;
-                while ((buf = br.readLine()) != null) {
-                    str.append(buf);
-                }
-
-                Log.e("response", str.toString());
-
-                JSONObject jObject = new JSONObject(str.toString());
-                result = jObject.getBoolean("result");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // TODO: register the new account here.
-            return result;
-        }
-    }
-
-
-
     public static class GetForecastTask extends AsyncTask<Void, Void, JSONObject> {
 
         int x,y;
@@ -807,7 +507,7 @@ public class ConnectServer {
 
     }
 
-    public static class ConnectServerTask extends AsyncTask<Void, Void, JSONObject> {
+    public static class ConnectServerTask extends AsyncTask<Void, Void, String> {
 
         RequestBody post;
         String url;
@@ -818,8 +518,8 @@ public class ConnectServer {
         }
 
         @Override
-        protected JSONObject doInBackground(Void... voids) {
-            JSONObject result = null;
+        protected String doInBackground(Void... voids) {
+            String result = null;
             OkHttpClient client = new OkHttpClient();
 
             Request request = new Request.Builder()
@@ -831,10 +531,8 @@ public class ConnectServer {
                 Response response = client.newCall(request).execute();
                 //Log.e("PuchNotificationTask",response.body().string());
 
-                result = new JSONObject(response.body().string());
+                result = response.body().string();
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -844,7 +542,7 @@ public class ConnectServer {
 
     }
 
-    public static class ConnectServerDialogTask extends AsyncTask<Void, Void, JSONObject> {
+    public static class ConnectServerDialogTask extends AsyncTask<Void, Void, String> {
 
         private ProgressDialog asyncDialog;
         RequestBody post;
@@ -877,8 +575,8 @@ public class ConnectServer {
         }
 
         @Override
-        protected JSONObject doInBackground(Void... voids) {
-            JSONObject result = null;
+        protected String doInBackground(Void... voids) {
+            String result = null;
             OkHttpClient client = new OkHttpClient();
 
             Request request = new Request.Builder()
@@ -890,10 +588,8 @@ public class ConnectServer {
                 Response response = client.newCall(request).execute();
                 //Log.e("PuchNotificationTask",response.body().string());
 
-                result = new JSONObject(response.body().string());
+                result = response.body().string();
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -901,8 +597,8 @@ public class ConnectServer {
         }
 
         @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            super.onPostExecute(jsonObject);
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
             asyncDialog.dismiss();
         }
 

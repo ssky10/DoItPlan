@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -33,6 +34,7 @@ import cz.msebera.android.httpclient.client.entity.UrlEncodedFormEntity;
 import cz.msebera.android.httpclient.client.methods.HttpPost;
 import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.message.BasicNameValuePair;
+import okhttp3.FormBody;
 
 public class RegistActivity extends AppCompatActivity {
 
@@ -200,6 +202,7 @@ public class RegistActivity extends AppCompatActivity {
         });
 
         btnCheck.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("StaticFieldLeak")
             @Override
             public void onClick(View view) {
                 if (isCheck) return;
@@ -209,8 +212,9 @@ public class RegistActivity extends AppCompatActivity {
                     return;
                 }
 
-                @SuppressLint("StaticFieldLeak")
-                ConnectServer.UserIdCheckTask ch = new ConnectServer.UserIdCheckTask(etEmail.getText().toString()){
+                new ConnectServer.ConnectServerTask(new FormBody.Builder()
+                        .add("email", etEmail.getText().toString())
+                        .build(),"checkId.php"){
                     @Override
                     protected void onPreExecute() {
                         btnCheck.setText("확인중");
@@ -218,18 +222,23 @@ public class RegistActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    protected void onPostExecute(final Boolean success) {
-                        if (success) {
-                            btnCheck.setText("성공");
-                            btnCheck.setTextColor(Color.CYAN);
-                            isCheck = true;
-                        } else {
-                            btnCheck.setText("실패");
-                            btnCheck.setTextColor(Color.RED);
+                    protected void onPostExecute(final String success) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(success);
+                            if (jsonObject.getBoolean("result")) {
+                                btnCheck.setText("성공");
+                                btnCheck.setTextColor(Color.CYAN);
+                                isCheck = true;
+                            } else {
+                                btnCheck.setText("실패");
+                                btnCheck.setTextColor(Color.RED);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+
                     }
-                };
-                ch.execute();
+                }.execute();
             }
         });
     }

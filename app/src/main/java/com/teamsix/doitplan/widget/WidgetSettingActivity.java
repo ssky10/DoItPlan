@@ -1,10 +1,13 @@
 package com.teamsix.doitplan.widget;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,8 +17,11 @@ import android.widget.Toast;
 import com.jaredrummler.android.colorpicker.ColorPickerDialog;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 import com.teamsix.doitplan.BuildConfig;
+import com.teamsix.doitplan.Plan;
 import com.teamsix.doitplan.R;
 import com.teamsix.doitplan.ResultListActivity;
+
+import static com.teamsix.doitplan.Plan.resultIntentToSting;
 
 public class WidgetSettingActivity extends AppCompatActivity implements ColorPickerDialogListener {
 
@@ -28,6 +34,8 @@ public class WidgetSettingActivity extends AppCompatActivity implements ColorPic
 
     private String color;
     private Button btn_result;
+
+    private Intent data;
 
 
     @Override
@@ -65,21 +73,39 @@ public class WidgetSettingActivity extends AppCompatActivity implements ColorPic
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(),ResultListActivity.class);
-                startActivityForResult(intent,1000);
+                startActivityForResult(intent,1);
             }
         });
     }
 
     public void getWidget(View view) {
+        Log.e("getWidget","start");
         String mText = widgetTitle.getText().toString();
 
-        remoteView.setTextViewText(R.id.wTitle, mText);
-        remoteView.setInt(R.id.wLayout,"setBackgroundColor",Color.parseColor(color));
-        appWidgetManager.updateAppWidget(mAppWidgetId, remoteView);
+        SharedPreferences widgetData = getSharedPreferences(mAppWidgetId+"WidgetData", MODE_PRIVATE);
+        SharedPreferences.Editor e = widgetData.edit();
+        e.putInt("color",Color.parseColor(color));
+        e.putString("text",mText);
+        e.putInt("code",data.getIntExtra("Result",0));
+        e.putString("value",resultIntentToSting(data));
+        e.apply();
+
+        Log.e("getWidget",String.valueOf(data.getIntExtra("result",0)));
+
+        WidgetProvider.updateWidget(this,appWidgetManager,mAppWidgetId);
 
         Intent resultValue = new Intent();
         resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
         setResult(RESULT_OK, resultValue);
+        finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent resultValue = new Intent();
+        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+        setResult(RESULT_CANCELED, resultValue);
         finish();
     }
 
@@ -108,8 +134,10 @@ public class WidgetSettingActivity extends AppCompatActivity implements ColorPic
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==1000){
-            data.getIntExtra("Result",0);
+        if(requestCode==1){
+            int code = data.getIntExtra("Result",0);
+            this.data = data;
+            btn_result.setText(Plan.RESULT_STRLONG[code]);
         }
     }
 }

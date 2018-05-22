@@ -1,18 +1,32 @@
 package com.teamsix.doitplan.widget;
 
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.util.Log;
+import android.widget.RemoteViews;
+
+import com.teamsix.doitplan.GetIfResult;
+import com.teamsix.doitplan.R;
+
+import static com.teamsix.doitplan.Plan.ifIntentToSting;
+import static com.teamsix.doitplan.Plan.resultIntentToSting;
 
 public class WidgetProvider extends AppWidgetProvider {
+
+    private static int widgetId;
 
     /**
      * 브로드캐스트를 수신할때, Override된 콜백 메소드가 호출되기 직전에 호출됨
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        super.onReceive(context, intent);
+            super.onReceive(context, intent);
     }
 
     /**
@@ -23,7 +37,9 @@ public class WidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager,
                          int[] appWidgetIds) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds);
+        for (int appWidgetId : appWidgetIds) {
+            updateWidget(context, appWidgetManager, appWidgetId);
+        }
     }
 
     /**
@@ -52,5 +68,32 @@ public class WidgetProvider extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
+        for (int appWidgetId : appWidgetIds) {
+            SharedPreferences pref = context.getSharedPreferences(appWidgetId+"WidgetData", Activity.MODE_PRIVATE);
+            pref.edit().clear().apply();
+        }
+    }
+
+    static void updateWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId){
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_style);
+
+        Log.e("WidgetData",appWidgetId+"");
+
+        SharedPreferences pref = context.getSharedPreferences(appWidgetId+"WidgetData", Activity.MODE_PRIVATE);
+
+        Intent intent = new Intent(context, WidgetService.class);
+        intent.setAction("com.teamsix.doitplan.BUTTON_CLICK");
+        intent.putExtra("result",pref.getInt("code",0));
+        intent.putExtra("value",pref.getString("value",""));
+        Log.e("value",pref.getString("value",""));
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        PendingIntent re_btn = PendingIntent.getBroadcast(context,
+                appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        views.setOnClickPendingIntent(R.id.wImage, re_btn);
+
+        views.setTextViewText(R.id.wTitle,pref.getString("text",""));
+        views.setInt(R.id.wImage,"setColorFilter",pref.getInt("color", Color.BLACK));
+
+        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 }

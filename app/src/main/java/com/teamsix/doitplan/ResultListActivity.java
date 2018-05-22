@@ -53,9 +53,15 @@ public class ResultListActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
                 break;
             case R.id.button19:
-                intent = new Intent(this, Pop2Activity.class);
-                intent.putExtra("Result", Plan.RESULT_SETTING);
-                startActivityForResult(intent, 1);
+                boolean isPermissionAllowed = PermissionUtils.isNotiPermissionAllowed(this);
+                if(!isPermissionAllowed) {
+                    Intent intentPermission = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                    startActivity(intentPermission);
+                }else{
+                    intent = new Intent(this, Pop2Activity.class);
+                    intent.putExtra("Result", Plan.RESULT_SETTING);
+                    startActivityForResult(intent, 1);
+                }
                 break;
         }
     }

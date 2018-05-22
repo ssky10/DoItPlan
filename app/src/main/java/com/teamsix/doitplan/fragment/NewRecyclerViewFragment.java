@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.github.florent37.materialviewpager.header.MaterialViewPagerHeaderDecorator;
 import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.LogoutResponseCallback;
+import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.ConnectServer;
 import com.teamsix.doitplan.LoginActivity;
 import com.teamsix.doitplan.MainActivity;
@@ -33,13 +34,19 @@ import com.teamsix.doitplan.R;
 import com.teamsix.doitplan.IfListActivity;
 import com.teamsix.doitplan.ResultListActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.FormBody;
 
 import static android.app.Activity.RESULT_OK;
+import static com.teamsix.doitplan.Plan.ifIntentToSting;
+import static com.teamsix.doitplan.Plan.resultIntentToSting;
 
 /**
  * Created by florentchampigny on 24/04/15.
@@ -122,16 +129,39 @@ public class NewRecyclerViewFragment extends Fragment {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             @SuppressLint("StaticFieldLeak")
-                            ConnectServer.newPlanTask task = new ConnectServer.newPlanTask(ifInfo, resultInfo, et.getText().toString(), NewRecyclerViewFragment.this.getContext()) {
+                            String msg = et.getText().toString();
+                            int ifCode = ifInfo.getIntExtra("if", 0);
+                            String ifValue = ifIntentToSting(ifInfo);
+                            String resultValue = resultIntentToSting(resultInfo);
+                            Log.e("ifValue",ifValue);
+                            Log.e("resultValue",resultValue);
+                            int resultCode = resultInfo.getIntExtra("Result", 0);
+                            @SuppressLint("StaticFieldLeak")
+                            ConnectServer.ConnectServerDialogTask task = new ConnectServer.ConnectServerDialogTask(
+                                    NewRecyclerViewFragment.this.getContext(),
+                                    "Plan등록중입니다...",
+                                    new FormBody.Builder()
+                                            .add("email", ApplicationController.getEmailId())
+                                            .add("ifCode", ifCode+"")
+                                            .add("resultCode", resultCode+"")
+                                            .add("ifValue",ifValue)
+                                            .add("resultValue",resultValue)
+                                            .add("msg",msg)
+                                            .build(),
+                                    "newPlan.php") {
                                 @Override
-                                protected void onPostExecute(Boolean result) {
+                                protected void onPostExecute(String result) {
                                     super.onPostExecute(result);
-                                    asyncDialog.dismiss();
-                                    if (result) {
-                                        Toast.makeText(getContext(), "성공적으로 등록되었습니다.", Toast.LENGTH_SHORT).show();
-                                        newRecyclerViewAdapter.setDefault();
-                                    } else {
-                                        Toast.makeText(getContext(), "오류가 발생하였습니다.", Toast.LENGTH_SHORT).show();
+                                    try {
+                                        JSONObject jsonObject = new JSONObject(result);
+                                        if (jsonObject.getBoolean("result")) {
+                                            Toast.makeText(getContext(), "성공적으로 등록되었습니다.", Toast.LENGTH_SHORT).show();
+                                            newRecyclerViewAdapter.setDefault();
+                                        } else {
+                                            Toast.makeText(getContext(), "오류가 발생하였습니다.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
                                 }
                             };
