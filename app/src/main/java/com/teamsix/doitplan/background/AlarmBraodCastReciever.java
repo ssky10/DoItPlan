@@ -4,15 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.GetIfResult;
 import com.teamsix.doitplan.Plan;
 
-import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.Locale;
 
 public class AlarmBraodCastReciever extends BroadcastReceiver {

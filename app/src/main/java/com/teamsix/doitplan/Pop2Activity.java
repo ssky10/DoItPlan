@@ -3,7 +3,6 @@ package com.teamsix.doitplan;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -20,8 +19,6 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
-
-import com.google.android.gms.maps.MapView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,7 +83,7 @@ public class Pop2Activity extends AppCompatActivity {
             txtText.setText("전화를 거절한다");
             text1.setVisibility(View.GONE);
             text2.setVisibility(View.GONE);
-            text.setVisibility(View.GONE);
+            text.setText("일부 제조사/통신사 및 버전 정책에 따라\n호환되지 않을수도 있습니다.\n현재 확인기종 : NEXUS 5");
         } else if (data == Plan.RESULT_PHONE) {
             txtText.setText("문자를 보낸다");
             text1.setHint("내용");
@@ -153,7 +150,7 @@ public class Pop2Activity extends AppCompatActivity {
                     wifiIsOn.setClickable(b);
                 }
             });
-            text.setVisibility(View.GONE);
+            text.setText("무음모드의 경우 일부 제조사의 경우 설정에 따라\n벨소리는 포함되지 않을수도 있습니다.");
         }
 
         if(type == 2) setData();

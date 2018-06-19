@@ -10,7 +10,6 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.GetIfResult;
@@ -63,6 +62,7 @@ public class KakaoNotificationListenerService extends NotificationListenerServic
         Log.i("NotificationListener", "[snowdeer] PostTime:" + sbn.getPostTime());
 
         if (sbn.getPackageName().equals("com.kakao.talk")) {
+            if(text == null) return;
             List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_KAKAO),title,text.toString());
             for(int j=0;j<list.size();j++){
                 if(list.get(j).resultCode==Plan.RESULT_CALL) ;

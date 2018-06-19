@@ -1,10 +1,13 @@
 package com.teamsix.doitplan.background;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -14,27 +17,36 @@ import com.teamsix.doitplan.Plan;
 
 import java.util.List;
 
-public class ClipboardService extends Service implements ClipboardManager.OnPrimaryClipChangedListener {
+public class BackgroundService extends Service implements ClipboardManager.OnPrimaryClipChangedListener {
     public static boolean isLaunched = false;
+    public static boolean isBetteryServiceLaunched = false;
+    private BetteryReceiver bReceiver;
     ClipboardManager mManager;
 
     @Override
     public void onCreate() {
-        isLaunched = true;
         super.onCreate();
+        isLaunched = true;
+        isBetteryServiceLaunched = true;
         mManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        // 리스너 등록
         mManager.addPrimaryClipChangedListener(this);
-        Log.e("Test", "ClipboardService onCreate");
+        bReceiver = BetteryReceiver.getInstance();
+        getApplicationContext().registerReceiver(bReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(-4,new Notification());
+        }
     }
 
     @Override
     public void onDestroy() {
         isLaunched = false;
+        isBetteryServiceLaunched = false;
         super.onDestroy();
         // 리스너 해제
         mManager.removePrimaryClipChangedListener(this);
-        Log.e("Test", "ClipboardService onDestroy");
+        getApplicationContext().unregisterReceiver(bReceiver);
+        Log.e("Test", "BackgroundService onDestroy");
     }
 
     @Override

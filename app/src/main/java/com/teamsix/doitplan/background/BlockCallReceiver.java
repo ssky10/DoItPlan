@@ -1,10 +1,11 @@
 package com.teamsix.doitplan.background;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -17,51 +18,38 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public class BlockCallReceiver extends BroadcastReceiver {
-    int mode = -1;
-    boolean isDoing = false;
+    static int mode;
+    static boolean isDoing = false;
 
-    @SuppressLint("WrongConstant")
     @Override
     public void onReceive(Context context, Intent intent) {
         // TODO Auto-generated method stub
         Bundle myBundle = intent.getExtras();
-        if (myBundle != null)
-        {
+        if (myBundle != null) {
             System.out.println("--------Not null-----");
-            try
-            {
-                if (intent.getAction().equals("android.intent.action.PHONE_STATE"))
-                {
+            try {
+                System.out.println("BlockCallReceiver:"+intent.getAction());
+                if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
                     String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
                     System.out.println("--------in state-----");
-                    if (state.equals(TelephonyManager.EXTRA_STATE_RINGING))
-                    {
+                    if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
                         // Incoming call
-                        String incomingNumber =intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-                        System.out.println("--------------my number---------"+incomingNumber);
+                        String incomingNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                        System.out.println("--------------my number---------" + incomingNumber);
 
-                        List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_CALL),incomingNumber);
-                        if(list.size()==0) return;
-                        for(int i=0;i<list.size();i++){
-                            GetIfResult.doitResult(list.get(i).resultCode,list.get(i).resultValue,context);
+                        List<Plan> list = GetIfResult.getBoolean(ApplicationController.getIfPlanDB(Plan.IF_CALL), incomingNumber);
+                        if (list.size() == 0) return;
+                        for (int i = 0; i < list.size(); i++) {
+                            GetIfResult.doitResult(list.get(i).resultCode, list.get(i).resultValue, context);
                         }
-                        Log.e("CallStateReceiver",String.valueOf(System.currentTimeMillis()-ApplicationController.getEndcall()));
-                        if((System.currentTimeMillis()-ApplicationController.getEndcall()>5000)
-                                ||(ApplicationController.getEndcall() == -1)) return;
 
-                        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
-                            NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+                        if ((System.currentTimeMillis() - ApplicationController.getEndcall() > 5000)
+                                || (ApplicationController.getEndcall() == -1)) return;
 
-                            //am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-                            if(mode == -1){
-                                mode = notificationManager.getCurrentInterruptionFilter();
-                            }
-                            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
-                            //am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-                        }else{
+                        try {
                             // this is main section of the code,. could also be use for particular number.
                             // Get the boring old TelephonyManager.
-                            TelephonyManager telephonyManager =(TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
                             // Get the getITelephony() method
                             Class<?> classTelephony = Class.forName(telephonyManager.getClass().getName());
@@ -80,30 +68,51 @@ public class BlockCallReceiver extends BroadcastReceiver {
                             // Invoke endCall()
                             methodEndCall.invoke(telephonyInterface);
 
-                            SendNotification.sendNotification(context,"전화가 자동 거절되었습니다.",incomingNumber);
-                        }
-                        isDoing = true;
-                    }
-                    else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE))
-                    {
-                        Log.d("EXTRA_STATE_IDLE",mode+"");
-                        if(isDoing){
-                            if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
-                                NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-                                if(mode != -1){
-                                    notificationManager.setInterruptionFilter(mode);
-                                    mode = -1;
+                            SendNotification.sendNotification(context, "전화가 자동 거절되었습니다.", incomingNumber);
+                        } catch (Exception e) {
+                            //am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                                if (mode == -1) {
+                                    mode = notificationManager.getCurrentInterruptionFilter();
                                 }
-
+                                notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
+                            } else {
+                                AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                                if (mode == -1) {
+                                    mode = mAudioManager.getRingerMode();
+                                }
+                                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT); //무음
                             }
-                            isDoing = false;
+                            //am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                        }finally {
+                            isDoing = true;
                         }
+
+                        //}
+
+                    } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                        Log.d("EXTRA_STATE_IDLE", mode + "/"+isDoing);
+                        if (isDoing) {
+                            isDoing = false;
+                            if (mode == -1) return;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                                assert notificationManager != null;
+                                notificationManager.setInterruptionFilter(mode);
+                                mode = -1;
+
+                            } else {
+                                AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                                assert mAudioManager != null;
+                                mAudioManager.setRingerMode(mode);
+                                mode = -1;
+                            }
+                        }
+                        Log.e("EXTRA_STATE_IDLE", mode + "");
                     }
                 }
-            }
-            catch (Exception ex)
-            { // Many things can go wrong with reflection calls
+            } catch (Exception ex) { // Many things can go wrong with reflection calls
                 ex.printStackTrace();
             }
         }

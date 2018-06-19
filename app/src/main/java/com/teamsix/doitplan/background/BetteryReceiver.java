@@ -13,15 +13,22 @@ import java.util.List;
 
 public class BetteryReceiver extends BroadcastReceiver {
     public static boolean isLaunched = false;
+    public static BetteryReceiver instance;
     public static int level = 0;
+
+    public static BetteryReceiver getInstance(){
+        if(isLaunched) return instance;
+        instance = new BetteryReceiver();
+        isLaunched = true;
+        return instance;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        isLaunched = true;
         int newLevel = intent.getIntExtra("level", 0);
         if(level == newLevel) return;
 
-        Log.e("Battery Level", level + "");
+        Log.e("Battery Level", newLevel + "!");
 
         level = newLevel;
 

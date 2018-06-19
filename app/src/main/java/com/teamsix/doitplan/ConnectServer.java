@@ -1,21 +1,11 @@
 package com.teamsix.doitplan;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.AsyncTask;
-import android.text.InputType;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
-import com.google.gson.Gson;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,8 +15,6 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import cz.msebera.android.httpclient.HttpEntity;
 import cz.msebera.android.httpclient.HttpResponse;
@@ -36,17 +24,12 @@ import cz.msebera.android.httpclient.client.entity.UrlEncodedFormEntity;
 import cz.msebera.android.httpclient.client.methods.HttpPost;
 import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.message.BasicNameValuePair;
-import okhttp3.Call;
-import okhttp3.Callback;
+
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import static com.teamsix.doitplan.Plan.ifIntentToSting;
-import static com.teamsix.doitplan.Plan.resultIntentToSting;
-import static java.lang.Math.asin;
 
 public class ConnectServer {
     /**
@@ -152,8 +135,8 @@ public class ConnectServer {
      * 카카오톡 토큰값 및 이메일 확인 백그라운드 작업
      */
     public static class UserTokenCheckTask extends AsyncTask<Void, Void, JSONObject> {
-        protected final String mEmail;
-        protected final String mToken;
+        final String mEmail;
+        final String mToken;
         private final String mType;
 
         ProgressDialog asyncDialog;
@@ -226,9 +209,7 @@ public class ConnectServer {
 
                 Log.e("response", str.toString());
 
-                JSONObject jObject = new JSONObject(str.toString());
-                result = jObject.getBoolean("result");
-                return jObject;
+                return new JSONObject(str.toString());
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -334,22 +315,24 @@ public class ConnectServer {
         }
     }
 
+    /**
+     * 기상청 API를 이용한 날씨정보 업데이트
+     */
     public static class GetForecastTask extends AsyncTask<Void, Void, JSONObject> {
 
-        int x,y;
+        int x, y;
         final String SERVICE_KEY = "tnC6l3h4zlaRPJ3gKXJRN8TxzoXz7H8V0DnVFOm6p2dumQizuEZ6Y45nI501a8PC%2BsY4BSIxTIGzlYxB9fpP9Q%3D%3D";
-        String baseDate,baseTime;
+        String baseDate, baseTime;
 
-        public GetForecastTask(double lat, double lon, String date, String time){
-            LatXLngY convert = convertGRID_GPS(0,lat,lon);
-            x = (int)convert.x;
-            y = (int)convert.y;
+        public GetForecastTask(double lat, double lon, String date, String time) {
+            LatXLngY convert = convertGRID_GPS(0, lat, lon);
+            x = (int) convert.x;
+            y = (int) convert.y;
             baseDate = date;
             baseTime = time;
         }
 
-        private LatXLngY convertGRID_GPS(int mode, double lat_X, double lon_Y )
-        {
+        private LatXLngY convertGRID_GPS(int mode, double lat_X, double lon_Y) {
             double RE = 6371.00877; // 지구 반경(km)
             double GRID = 5.0; // 격자 간격(km)
             double SLAT1 = 30.0; // 투영 위도1(degree)
@@ -391,8 +374,7 @@ public class ConnectServer {
                 theta *= sn;
                 rs.x = Math.floor(ra * Math.sin(theta) + XO + 0.5);
                 rs.y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
-            }
-            else {
+            } else {
                 rs.x = lat_X;
                 rs.y = lon_Y;
                 double xn = lat_X - XO;
@@ -407,15 +389,13 @@ public class ConnectServer {
                 double theta = 0.0;
                 if (Math.abs(xn) <= 0.0) {
                     theta = 0.0;
-                }
-                else {
+                } else {
                     if (Math.abs(yn) <= 0.0) {
                         theta = Math.PI * 0.5;
                         if (xn < 0.0) {
                             theta = -theta;
                         }
-                    }
-                    else theta = Math.atan2(xn, yn);
+                    } else theta = Math.atan2(xn, yn);
                 }
                 double alon = theta / sn + olon;
                 rs.lat = alat * RADDEG;
@@ -424,8 +404,7 @@ public class ConnectServer {
             return rs;
         }
 
-        class LatXLngY
-        {
+        class LatXLngY {
             public double lat;
             public double lng;
 
@@ -439,16 +418,16 @@ public class ConnectServer {
             JSONObject result = null;
             OkHttpClient client = new OkHttpClient();
             StringBuffer url = new StringBuffer();
-            url.append("ServiceKey="+SERVICE_KEY);
-            url.append("&base_date="+baseDate);
-            url.append("&base_time="+baseTime);
-            url.append("&nx="+x);
-            url.append("&ny="+y);
+            url.append("ServiceKey=" + SERVICE_KEY);
+            url.append("&base_date=" + baseDate);
+            url.append("&base_time=" + baseTime);
+            url.append("&nx=" + x);
+            url.append("&ny=" + y);
             url.append("&numOfRows=10&_type=json");
 
 
             Request request = new Request.Builder()
-                    .url("http://newsky2.kma.go.kr/service/SecndSrtpdFrcstInfoService2/ForecastGrib?"+url.toString())
+                    .url("http://newsky2.kma.go.kr/service/SecndSrtpdFrcstInfoService2/ForecastGrib?" + url.toString())
                     .build();
 
             try {
@@ -462,15 +441,16 @@ public class ConnectServer {
             }
             return result;
         }
-
-
     }
 
+    /**
+     * 서버에 Push메시지 요청작업
+     */
     public static class PuchNotificationTask extends AsyncTask<Void, Void, JSONObject> {
 
-        String title,msg;
+        String title, msg;
 
-        public PuchNotificationTask(String title, String msg){
+        public PuchNotificationTask(String title, String msg) {
             this.title = title;
             this.msg = msg;
         }
@@ -481,8 +461,8 @@ public class ConnectServer {
             OkHttpClient client = new OkHttpClient();
             RequestBody body = new FormBody.Builder()
                     .add("email", ApplicationController.getEmailId())
-                    .add("title",title)
-                    .add("message",msg)
+                    .add("title", title)
+                    .add("message", msg)
                     .build();
 
             Request request = new Request.Builder()
@@ -503,16 +483,17 @@ public class ConnectServer {
 
             return result;
         }
-
-
     }
 
+    /**
+     * 다이얼로그없이 서버 접속
+     */
     public static class ConnectServerTask extends AsyncTask<Void, Void, String> {
 
         RequestBody post;
         String url;
 
-        public ConnectServerTask(RequestBody data, String url){
+        public ConnectServerTask(RequestBody data, String url) {
             this.post = data;
             this.url = url;
         }
@@ -523,7 +504,7 @@ public class ConnectServer {
             OkHttpClient client = new OkHttpClient();
 
             Request request = new Request.Builder()
-                    .url("https://doitplan.ml/dip/"+url)
+                    .url("https://doitplan.ml/dip/" + url)
                     .post(post)
                     .build();
 
@@ -538,10 +519,11 @@ public class ConnectServer {
 
             return result;
         }
-
-
     }
 
+    /**
+     * 다이얼로그를 포함한 서버 값 전달 TASK
+     */
     public static class ConnectServerDialogTask extends AsyncTask<Void, Void, String> {
 
         private ProgressDialog asyncDialog;
@@ -549,7 +531,7 @@ public class ConnectServer {
         String url;
         String msg;
 
-        public ConnectServerDialogTask(Context context, String msg, RequestBody data, String url){
+        public ConnectServerDialogTask(Context context, String msg, RequestBody data, String url) {
             this.post = data;
             this.url = url;
             this.msg = msg;
@@ -580,7 +562,7 @@ public class ConnectServer {
             OkHttpClient client = new OkHttpClient();
 
             Request request = new Request.Builder()
-                    .url("https://doitplan.ml/dip/"+url)
+                    .url("https://doitplan.ml/dip/" + url)
                     .post(post)
                     .build();
 

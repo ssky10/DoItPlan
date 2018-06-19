@@ -271,11 +271,11 @@
                         android:id="@+id/button18"
                         android:layout_width="match_parent"
                         android:layout_height="135dp"
-                        android:background="@android:color/holo_orange_light"
+                        android:background="#02c70a"
                         android:onClick="btnClick"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/naver"
-                        android:text="Button" />
+                        android:scaleType="fitXY"
+                        android:text="Button"
+                        app:srcCompat="@drawable/naver" />
 
                     <TextView
                         android:id="@+id/textView28"

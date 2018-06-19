@@ -1,16 +1,13 @@
 package com.teamsix.doitplan.widget;
 
-import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.IBinder;
 import android.util.Log;
 
 import com.teamsix.doitplan.GetIfResult;
 
-import static com.teamsix.doitplan.Plan.resultIntentToSting;
 
 public class WidgetService extends BroadcastReceiver {
     public WidgetService() {

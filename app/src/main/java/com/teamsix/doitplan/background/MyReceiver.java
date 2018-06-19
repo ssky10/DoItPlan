@@ -4,9 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.widget.Toast;
 
 import com.teamsix.doitplan.ApplicationController;
 import com.teamsix.doitplan.GetIfResult;
@@ -19,11 +17,6 @@ public class MyReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        SmsManager sms = SmsManager.getDefault();
-
-
-        //Toast.makeText(context,"문자메시지가 도착했습니다!!",Toast.LENGTH_SHORT).show();
 
         Bundle bundle = intent.getExtras();
         SmsMessage[] msgs = null;
@@ -43,10 +36,7 @@ public class MyReceiver extends BroadcastReceiver {
                     if(list.get(j).resultCode==Plan.RESULT_CALL) ;
                     else GetIfResult.doitResult(list.get(j).resultCode,list.get(j).resultValue,context);
                 }
-                //sms.sendTextMessage(msgs[i].getOriginatingAddress(), null, msgs[i].getMessageBody().toString(), null, null);
             }
-            //Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
-
         }
     }
 }

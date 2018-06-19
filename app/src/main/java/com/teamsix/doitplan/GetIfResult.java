@@ -1,15 +1,11 @@
 package com.teamsix.doitplan;
 
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.telephony.SmsManager;
 import android.util.Log;
-import android.widget.ToggleButton;
 
-import com.teamsix.doitplan.background.AlarmBraodCastReciever;
 import com.teamsix.doitplan.background.BetteryReceiver;
 import com.teamsix.doitplan.background.ForecastBraodCastReciever;
 import com.teamsix.doitplan.background.SendNotification;
@@ -25,7 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,21 +72,23 @@ public class GetIfResult {
     private static boolean getIfBoolean(int code, String value, String... args){
         try {
             JSONObject values = new JSONObject(value);
-            Pattern p; Matcher m;
+            Pattern p; Matcher m; String str;
 
             switch (code) {
                 case Plan.IF_CALL:
-                    p = Pattern.compile(values.getString("callnum"));
+                    str = values.getString("callnum").equals("")? "" : values.getString("callnum");
+                    p = Pattern.compile("^"+str.replace("*","[0-9]*")+"$");
                     m = p.matcher(args[0]);
                     return m.matches();
                 case Plan.IF_PHONE:
-                    p = Pattern.compile(values.getString("phonenum"));
+                    str = values.getString("phonenum").equals("")? "*" : values.getString("phonenum");
+                    p = Pattern.compile("^"+str.replace("*","[0-9]*")+"$");
                     m = p.matcher(args[0]);
-                    return m.matches() || args[1].contains(values.getString("phonestring"));
+                    return m.matches() && args[1].contains(values.getString("phonestring"));
                 case Plan.IF_KAKAO:
-                    p = Pattern.compile(values.getString("kakaopeople"));
+                    p = Pattern.compile("^"+values.getString("kakaopeople")+"$");
                     m = p.matcher(args[0]);
-                    return m.matches() || args[1].contains(values.getString("kakaostring"));
+                    return m.matches() && args[1].contains(values.getString("kakaostring"));
                 case Plan.IF_TIME:
                     long now = System.currentTimeMillis();
                     // 현재시간을 date 변수에 저장한다.
@@ -134,7 +131,7 @@ public class GetIfResult {
                             return true;
                     return false;
                 case Plan.IF_BATTERY:
-                    return BetteryReceiver.level <= Integer.valueOf(values.getString("betterypercent"));
+                    return BetteryReceiver.level == Integer.valueOf(values.getString("betterypercent"));
                 case Plan.IF_CLIP:
                     long num = System.currentTimeMillis() - ApplicationController.getClipChangeTime();
                     return num < 5000;
@@ -147,7 +144,7 @@ public class GetIfResult {
                     loc2.setLongitude(Double.valueOf(args[1]));
                     loc2.setLatitude(Double.valueOf(args[0]));
                     Log.e("Loc",loc1.distanceTo(loc2)+"");
-                    return loc1.distanceTo(loc2) < 500;
+                    return loc1.distanceTo(loc2) < 100;
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -161,7 +158,7 @@ public class GetIfResult {
 
             switch (code) {
                 case Plan.RESULT_CALL:
-                    if(args[0]==1) ApplicationController.setEndcall(-1);
+                    if(args.length != 0 && args[0]==1) ApplicationController.setEndcall(-1);
                     else ApplicationController.setEndcall(System.currentTimeMillis());
                     break;
                 case Plan.RESULT_PHONE:
@@ -182,10 +179,10 @@ public class GetIfResult {
                     StringBuffer sb = new StringBuffer();
                     sb.append("하늘 : ");
                     sb.append(ForecastBraodCastReciever.forecast.getSky());
-                    sb.append("비/눈 : ");
-                    sb.append(ForecastBraodCastReciever.forecast.getRain());
-                    sb.append("기온 : ");
-                    sb.append(ForecastBraodCastReciever.forecast.getHumidity()+"℃");
+                    sb.append(" 비/눈 : ");
+                    sb.append(ForecastBraodCastReciever.forecast.getState());
+                    sb.append(" 기온 : ");
+                    sb.append(ForecastBraodCastReciever.forecast.getTemperature()+"℃");
                     sendNotification(context,"현재 날씨",sb.toString());
                     break;
                 case Plan.RESULT_ALARM:

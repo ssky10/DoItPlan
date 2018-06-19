@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -77,6 +76,7 @@ public class SmallRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
             swWork.setVisibility(View.GONE);
             btnShare.setVisibility(View.GONE);
             btnModify.setVisibility(View.GONE);
+            btnDelete.setVisibility(View.GONE);
         }
 
 

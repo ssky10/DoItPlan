@@ -1,38 +1,26 @@
 package com.teamsix.doitplan;
 
 import android.Manifest;
-import android.app.AlarmManager;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.github.florent37.materialviewpager.MaterialViewPager;
 import com.github.florent37.materialviewpager.header.HeaderDesign;
-import com.teamsix.doitplan.background.AlarmBraodCastReciever;
 import com.teamsix.doitplan.background.AlarmUtils;
-import com.teamsix.doitplan.background.BetteryReceiver;
-import com.teamsix.doitplan.background.BlockCallReceiver;
-import com.teamsix.doitplan.background.CallStateReceiver;
-import com.teamsix.doitplan.background.ClipboardService;
-import com.teamsix.doitplan.background.Forecast;
+import com.teamsix.doitplan.background.BackgroundService;
 import com.teamsix.doitplan.background.ForecastBraodCastReciever;
 import com.teamsix.doitplan.background.GPStracker;
 import com.teamsix.doitplan.fragment.NewRecyclerViewFragment;
 import com.teamsix.doitplan.fragment.RecyclerViewFragment;
 import com.teamsix.doitplan.fragment.SmallRecyclerViewFragment;
-
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,8 +34,6 @@ public class MainActivity extends DrawerActivity {
     MaterialViewPager mViewPager;//
     NewRecyclerViewFragment newRecyclerViewFragment;
     SmallRecyclerViewFragment smallRecyclerViewFragment;
-    private final BroadcastReceiver mBloackCallReceiver = new BlockCallReceiver();
-    private final BetteryReceiver mBetteryReceiver = new BetteryReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,13 +135,10 @@ public class MainActivity extends DrawerActivity {
             });
         }
 
-        PermissionUtils.requestPermission(this,123,Manifest.permission.ACCESS_FINE_LOCATION);
-
-        //전화상태 확인 및 변경 서비스
-        registerReceiver(mBloackCallReceiver , new IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED));
-
-        //베터리 상태 체크
-        registerReceiver(mBetteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        PermissionUtils.requestPermission(this,123,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.CALL_PHONE,
+                Manifest.permission.SEND_SMS);
 
         //날씨 상태 확인
         if (!ForecastBraodCastReciever.isLaunched) {
@@ -167,9 +150,13 @@ public class MainActivity extends DrawerActivity {
         }
 
         //클립보드 서비스 시작
-        if(!ClipboardService.isLaunched) {
-            Intent mIntent = new Intent(getApplicationContext(), ClipboardService.class);
-            startService(mIntent);
+        if(!BackgroundService.isLaunched) {
+            Intent mIntent = new Intent(getApplicationContext(), BackgroundService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                this.startForegroundService(mIntent);
+            }else{
+                startService(mIntent);
+            }
         }
     }
 
@@ -193,7 +180,7 @@ public class MainActivity extends DrawerActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mBloackCallReceiver);
-        unregisterReceiver(mBetteryReceiver);
+        //unregisterReceiver(mBloackCallReceiver);
+        //unregisterReceiver(mBetteryReceiver);
     }
 }

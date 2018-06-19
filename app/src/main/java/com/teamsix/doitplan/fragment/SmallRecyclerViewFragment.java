@@ -31,7 +31,6 @@ import com.teamsix.doitplan.background.AlarmUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -88,6 +87,7 @@ public class SmallRecyclerViewFragment extends Fragment {
             public void onRefresh() {
 
                 List<Plan> newItem = ApplicationController.getAllPlanDB();
+                if (newItem.size() == 0) newItem.add(new Plan(-1, "나의 Plan이 없습니다.", "admin", 0));
                 mRecyclerView.setAdapter(new SmallRecyclerViewAdapter(newItem));
 
                 mSwipeRefreshLayout.setRefreshing(false);

@@ -1,7 +1,6 @@
 package com.teamsix.doitplan;
 
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
@@ -16,13 +15,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
-
-import com.teamsix.doitplan.background.AlarmUtils;
-import com.teamsix.doitplan.background.ForecastBraodCastReciever;
-import com.teamsix.doitplan.background.GPStracker;
-
-import static com.teamsix.doitplan.background.ForecastBraodCastReciever.forecast;
-
 
 public class Pop1Activity extends AppCompatActivity {
 

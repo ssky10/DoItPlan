@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import static com.teamsix.doitplan.GetIfResult.getNextDate;
 
 public class AlarmUtils {
-    private final static int ONE_HOUR = 60 * 60 * 1000;
+    private final static int ONE_HOUR = 60 * 1000;
 
     private static AlarmUtils _instance;
     public static ArrayList<Integer> alarmPlanNo = new ArrayList<>();
@@ -31,13 +31,14 @@ public class AlarmUtils {
         // AlarmOneSecondBroadcastReceiver 초기화
         Intent alarmIntent = new Intent("com.teamsix.doitplan.ALARM_START");
         alarmIntent.putExtra("planNo",planNo);
-        if(alarmPlanNo.indexOf(planNo)==-1) alarmPlanNo.add(planNo);
+        if(alarmPlanNo.indexOf(planNo) == -1) alarmPlanNo.add(planNo);
         alarmIntent.setClass(context, AlarmBraodCastReciever.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, planNo, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         long now = System.currentTimeMillis();
         // 현재시간을 date 변수에 저장한다.
         Plan plan = ApplicationController.getWorkPlan(planNo);
+
         if(plan==null){
             alarmPlanNo.remove(planNo);
             return;

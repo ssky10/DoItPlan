@@ -11,15 +11,10 @@ import android.graphics.Color;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.teamsix.doitplan.GetIfResult;
 import com.teamsix.doitplan.R;
 
-import static com.teamsix.doitplan.Plan.ifIntentToSting;
-import static com.teamsix.doitplan.Plan.resultIntentToSting;
 
 public class WidgetProvider extends AppWidgetProvider {
-
-    private static int widgetId;
 
     /**
      * 브로드캐스트를 수신할때, Override된 콜백 메소드가 호출되기 직전에 호출됨

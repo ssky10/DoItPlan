@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.github.florent37.materialviewpager.header.MaterialViewPagerHeaderDecorator;
-import com.teamsix.doitplan.fragment.RecyclerViewFragment;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,7 +17,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
 import okhttp3.FormBody;
 
 public class Searchctivity extends AppCompatActivity {
